@@ -1,20 +1,21 @@
 #!/bin/bash
 
+sudo apt-get -y install jq
+
 UP_DOWN="$1"
 
-FABRIC_TAG="x86_64-1.0.0-rc1"
 
 ROOTPATH=$(dirname $PWD)
 
-COMPOSE_FILENAME="docker-compose-marblesv3"
-COMPOSE_FILE_SUFFIX=".yaml"
-COMPOSE_FILE=$COMPOSE_FILENAME-$FABRIC_TAG$COMPOSE_FILE_SUFFIX
+COMPOSE_FILE=$(jq '.docker.compose' config.json)
 
+IMPOSED_CONTAINERS=$(jq '.docker.containers.clearPattern.imposed[]' config.json)
+PULL_IMAGES=$(jq '.docker.images.pull[]' config.json)
 
 echo ROOTPATH=$ROOTPATH
 
-
 function dkcl() {
+    # TODO work to here
     CONTAINER_IDS=$(docker ps -aq -f name="peer|example.com|orderer|couchdb")
 
     echo
@@ -28,19 +29,26 @@ function dkcl() {
 
 function dkrm() {
     local isFast=$1
-    DOCKER_IMAGE_IDS=$(docker images | grep "hyperledger\|dev\|none\|couchdb" | awk '{print $3}')
-    if [ ! -z "$isFast" ]; then
-        echo dkrm isFast=true
-        DOCKER_IMAGE_IDS=$(docker images | grep "dev\|none" | awk '{print $3}')
-    fi
-    echo
-    if [ -z "$DOCKER_IMAGE_IDS" -o "$DOCKER_IMAGE_IDS" = " " ]; then
-        echo "========== No images available for deletion ==========="
-    else
-        docker rmi -f $DOCKER_IMAGE_IDS
-    fi
-    echo
+    local PATTERN=""
+    IMPOSED_ARR=$(jq -r ".docker.images.clearPattern.imposed[]" config.json)
+    for IMPOSE_EACH in $IMPOSED_ARR; do
+        PATTERN="$PATTERN\|"$IMPOSE_EACH
+    done
+    PATTERN=${PATTERN:2} # substring
 
+    if [ -z "$isFast" ]; then
+        local BASIC=""
+        local BASIC_ARR=$(jq -r ".docker.images.clearPattern.fundamental[]" config.json)
+        for BASIC_EACH in $BASIC_ARR; do
+            BASIC="$BASIC\|"$BASIC_EACH
+        done
+        BASIC=${BASIC:2} # substring
+        if [ ! -z "$BASIC" ]; then
+          PATTERN="$PATTERN\|"$BASIC
+        fi
+    fi
+    DOCKER_IMAGE_IDS=$(docker images | grep "$PATTERN" | awk '{print $3}')
+    ./clear.sh image $DOCKER_IMAGE_IDS
 }
 
 
@@ -73,18 +81,6 @@ function setupSDK() {
 
 }
 
-function dockerPull() {
-    for IMAGES in peer orderer couchdb ccenv javaenv kafka zookeeper ca; do
-
-        docker pull hyperledger/fabric-$IMAGES:$FABRIC_TAG
-    done
-}
-
-function dockerUp() {
-    cd ./fabric-sdk-node/test/fixtures
-    docker-compose -f $COMPOSE_FILE up -d
-    cd -
-}
 
 function dockerDown() {
     if [ -d 'fabric-sdk-node/test/fixtures' ]; then
@@ -105,29 +101,32 @@ function cleanHFC() {
     rm -rf /tmp/hfc-* ~/.hfc-key-store /tmp/fabric-client-kvs_peerOrg*
 }
 
-function networkUp() {
-    dockerPull
-    setupSDK
-    dockerUp
-
-    echo ===docker up finished:
-    ./docker.sh view
-
-    setupChannel
-    serverStart
-
-}
 
 function networkResume() {
-    dockerUp
+    ./compose.sh up $COMPOSE_FILE
+    ./onResume.sh
 
-    echo ===docker up finished:
-    ./docker.sh view
+    ./onRefresh.sh
+}
+function networkUp() {
+    ./docker.sh pull $PULL_IMAGES
+    ./onUp.sh
+    networkResume
 
-    setupChannel
-    serverStart
 }
 
+
+function networkPause() {
+    ./compose.sh down $COMPOSE_FILE
+
+    ./clear.sh container $IMPOSED_CONTAINERS
+    dkrm fast
+    cleanHFC
+
+    echo ===pause finished:
+    ./docker.sh view
+
+}
 function networkDown() {
     ./compose.sh down
     dockerDown
@@ -140,16 +139,6 @@ function networkDown() {
 
     echo ===down finished:
     ./docker.sh view
-}
-
-function networkPause() {
-    dockerDown
-    dkrm fast
-    cleanHFC
-
-    echo ===pause finished:
-    ./docker.sh view
-
 }
 
 function serverStart() {
@@ -190,7 +179,7 @@ elif [ "${UP_DOWN}" == "resume" ]; then
     networkPause
     networkResume
 elif [ "${UP_DOWN}" == "refresh" ]; then
-    serverStart
+    ./onRefresh.sh
 else
     ./help.sh
     exit 1

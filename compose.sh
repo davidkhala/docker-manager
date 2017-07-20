@@ -6,11 +6,11 @@ if [ -f "$COMPOSE_FILE" ]; then
 	if [ "$ACTION" == "up" ]; then
 		docker-compose -f $COMPOSE_FILE up -d
         echo ===compose up completed
-        ./view.sh 
+        ./docker.sh view
 	elif [ "$ACTION" == "down" ]; then
 		docker-compose -f $COMPOSE_FILE down
         echo ===compose down completed
-        ./view.sh
+        ./docker.sh view
 	else
 		echo "Invalid action $ACTION"
 		exit 1
