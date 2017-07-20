@@ -1,10 +1,15 @@
 #!/bin/bash
 
 TYPE=$1
-TARGET=$2
 
-function container(){
-    local CONTAINER_IDS=$1
+TARGET=""
+for (( i = 2; i <= $#; i ++ )); do
+    j=${!i}
+    TARGET="$TARGET $j"
+done
+echo target: $TARGET
+if [ "${TYPE}" == "container" ]; then
+    CONTAINER_IDS=$TARGET
 
     echo
     if [ -z "$CONTAINER_IDS" -o "$CONTAINER_IDS" = " " ]; then
@@ -13,10 +18,13 @@ function container(){
         docker rm $CONTAINER_IDS
     fi
     echo
-}
+elif [ "${TYPE}" == "cache" ]; then
+    files=$TARGET
+    echo cache files to remove: $files
+    rm -rf $files
+elif [ "${TYPE}" == "image" ]; then
 
-function image(){
-    local DOCKER_IMAGE_IDS=$1
+    DOCKER_IMAGE_IDS=$TARGET
     echo
     if [ -z "$DOCKER_IMAGE_IDS" -o "$DOCKER_IMAGE_IDS" = " " ]; then
         echo "========== No images available for deletion ==========="
@@ -24,20 +32,6 @@ function image(){
         docker rmi $DOCKER_IMAGE_IDS
     fi
     echo
-}
-
-function cache(){
-    local files=$1
-    echo cache files to remove: $files
-    rm -rf $files
-}
-
-if [ "${TYPE}" == "container" ]; then
-    container $TARGET
-elif [ "${TYPE}" == "cache" ]; then
-    cache $TARGET
-elif [ "${TYPE}" == "image" ]; then
-    image $TARGET
 else
     echo "Invalid TYPE: $TYPE"
     exit 1

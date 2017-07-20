@@ -1,8 +1,8 @@
 #!/bin/bash
 
-local restartDesc=$1
-local resumeDesc=$2
-local refreshDesc=$3
+restartDesc=$1
+resumeDesc=$2
+refreshDesc=$3
 echo "Description "
 echo
 echo "manage docker project"

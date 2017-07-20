@@ -14,14 +14,6 @@ COMPOSE_FILE=$COMPOSE_FILENAME-$FABRIC_TAG$COMPOSE_FILE_SUFFIX
 echo ROOTPATH=$ROOTPATH
 
 
-function dockerView() {
-
-    echo =====container
-    docker ps -a
-    echo =====images
-    docker images -a
-}
-
 function dkcl() {
     CONTAINER_IDS=$(docker ps -aq -f name="peer|example.com|orderer|couchdb")
 
@@ -119,7 +111,7 @@ function networkUp() {
     dockerUp
 
     echo ===docker up finished:
-    dockerView
+    ./docker.sh view
 
     setupChannel
     serverStart
@@ -130,13 +122,14 @@ function networkResume() {
     dockerUp
 
     echo ===docker up finished:
-    dockerView
+    ./docker.sh view
 
     setupChannel
     serverStart
 }
 
 function networkDown() {
+    ./compose.sh down
     dockerDown
     dkrm
     cleanHFC
@@ -146,7 +139,7 @@ function networkDown() {
     fi
 
     echo ===down finished:
-    dockerView
+    ./docker.sh view
 }
 
 function networkPause() {
@@ -155,7 +148,7 @@ function networkPause() {
     cleanHFC
 
     echo ===pause finished:
-    dockerView
+    ./docker.sh view
 
 }
 
