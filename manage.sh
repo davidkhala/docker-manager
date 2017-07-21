@@ -4,7 +4,7 @@ sudo apt-get -y install jq
 
 UP_DOWN="$1"
 
-CURRENT=$(dirname $0)
+CURRENT="$(dirname $(readlink -f ${BASH_SOURCE}))"
 
 COMPOSE_FILE=$(jq '.docker.compose' config.json)
 
@@ -21,7 +21,7 @@ function clearContainer() {
 
     local CONTAINER_IDS=$(docker ps -a | grep "$PATTERN" | awk '{print $1}')
 
-    ./clear.sh container $CONTAINER_IDS
+    utils/clear.sh container $CONTAINER_IDS
 }
 
 function clearImage() {
@@ -45,49 +45,49 @@ function clearImage() {
         fi
     fi
     DOCKER_IMAGE_IDS=$(docker images | grep "$PATTERN" | awk '{print $3}')
-    ./clear.sh image $DOCKER_IMAGE_IDS
+    utils/clear.sh image $DOCKER_IMAGE_IDS
 }
 
 function networkResume() {
-    ./onResume.sh
-    ./compose.sh up $COMPOSE_FILE
+    callback/onResume.sh
+    utils/compose.sh up $COMPOSE_FILE
 
     echo ===resume finished:
-    ./docker.sh view
-    ./onRefresh.sh
+    utils/docker.sh view
+    callback/onRefresh.sh
 }
 function networkUp() {
-    ./onUp.sh
+    callback/onUp.sh
 
     PULL_IMAGES=$(jq '.docker.images.pull[]' config.json)
-    ./docker.sh pull $PULL_IMAGES
+    utils/docker.sh pull $PULL_IMAGES
     networkResume
 
     echo ===up finished:
-    ./docker.sh view
+    utils/docker.sh view
 }
 
 function clearHFC(){
-    ./clear.sh cache /tmp/hfc-* ~/.hfc-key-store /tmp/fabric-client-kvs_peerOrg*
+    utils/clear.sh cache /tmp/hfc-* ~/.hfc-key-store /tmp/fabric-client-kvs_peerOrg*
 }
 function networkPause() {
-    ./compose.sh down $COMPOSE_FILE
+    utils/compose.sh down $COMPOSE_FILE
     clearContainer
     clearImage fast
     clearHFC
 
-    ./onPause.sh
+    callback/onPause.sh
     echo ===pause finished:
-    ./docker.sh view
+    utils/docker.sh view
 
 }
 function networkDown() {
     networkPause
     clearImage
 
-    ./onDown.sh
+    callback/onDown.sh
     echo ===down finished:
-    ./docker.sh view
+    utils/docker.sh view
 }
 
 
@@ -107,8 +107,8 @@ elif [ "${UP_DOWN}" == "resume" ]; then
     networkPause
     networkResume
 elif [ "${UP_DOWN}" == "refresh" ]; then
-    ./onRefresh.sh
+    callback/onRefresh.sh
 else
-    ./help.sh
+    utils/help.sh
     exit 1
 fi
