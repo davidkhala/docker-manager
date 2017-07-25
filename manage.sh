@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo apt-get -y install jq
+sudo apt-get -qq install -y jq
 
 UP_DOWN="$1"
 
