@@ -16,8 +16,8 @@ const deleteContainer = containerName =>
 								}
 
 							} else {
-								//FIXME:
-								throw new Error({status: 204,desc:`empty array`,message:`no container found matching ${containerName}`})
+								//FIXME: align data format of remove
+								return ({status: 204,desc:`empty array`,message:`no container found matching ${containerName}`})
 							}
 
 						}
