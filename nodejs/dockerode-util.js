@@ -41,11 +41,49 @@ exports.deleteContainer = deleteContainer
 exports.createHelloworld = createDummy
 
 exports.deleteImage = (imageName) => {
-	const image = docker.getImage(imageName)
-	return image.remove()
+
+	return docker.listImages({ all: true, limit: 1, filter: imageName }).
+			then(images => {
+						if (images.length) {
+							const image = docker.getImage(imageName)
+							return image.remove()
+						} else {
+							const message = `No such image: ${imageName}`
+							console.warn(message)
+							return {
+								reason: 'no such image',
+								statusCode: 404,
+								json: { message }
+							}
+						}
+					}
+			)
+
 }
+
 exports.pullImage = (imageName) => {
-	return docker.pull(imageName)
+
+	//FIXED: fatal bug: if immediately do docker operation after callback:
+	// reason: 'no such container',
+	// 		statusCode: 404,
+	// 		json: { message: 'No such image: hello-world:latest' } }
+	//See discussion in https://github.com/apocas/dockerode/issues/107
+	return docker.pull(imageName).then(stream => {
+		return new Promise((resolve, reject) => {
+			const onProgress = (event) => {}
+			const onFinished = (err, output) => {
+				if(err){
+					//FIXME swallow, do not reject
+					console.error(err)
+					return resolve(output)
+				}else {
+					return resolve(output)
+				}
+			}
+			docker.modem.followProgress(stream, onFinished, onProgress)
+		})
+
+	})
 }
 
 
