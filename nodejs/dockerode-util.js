@@ -16,7 +16,8 @@ const deleteContainer = containerName =>
 								}
 
 							} else {
-								throw new Error(`no container found matching ${containerName}`)
+								//FIXME:
+								throw new Error({status: 204,desc:`empty array`,message:`no container found matching ${containerName}`})
 							}
 
 						}
