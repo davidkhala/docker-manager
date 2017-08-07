@@ -1,0 +1,7 @@
+{
+  "name": "docker-manager-nodejs",
+  "version": "0.0.1",
+  "dependencies": {
+    "dockerode": "^2.5.0"
+  }
+}
