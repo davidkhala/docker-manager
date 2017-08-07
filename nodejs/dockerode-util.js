@@ -6,28 +6,46 @@ const docker = new Dockerode()
 const deleteContainer = containerName =>
 		docker.listContainers({ all: true, limit: 1, filters: { name: [containerName] } }).
 				then(containers => {
-							console.info('matched', containers)
 							if (containers.length) {
 								const container0Info = containers[0]
-								if (container0Info.State = 'exited') {
-									return docker.getContainer(container0Info.Id).remove()
+								console.info('matched', container0Info)
+								const container0 = docker.getContainer(container0Info.Id)
+								if (container0Info.State === 'exited') {
+									return container0.remove()
 								} else {
-									return docker.getContainer(container0Info.Id).kill().remove()
+									return container0.kill().then(container => container.remove())
 								}
 
 							} else {
-								//FIXME: align data format of remove
-								return ({status: 204,desc:`empty array`,message:`no container found matching ${containerName}`})
+								const message = `no container found matching ${containerName}`
+								console.warn(message)
+								return ({ statusCode: 204, reason: `empty array`, json: { message } })
 							}
 
 						}
 				)
 
-const createDummy = () =>
-		docker.createContainer({ Image: 'hello-world', name: 'hello-world' }).then(container => {
-			return container.start()
-		})
+const createDummy = (dummyName = 'hello-world') =>
+		docker.listContainers({ all: true, limit: 1, filters: { name: [dummyName] } }).
+				then(containers => {
+					if (containers.length) {
+						//when existing
+						return docker.getContainer(containers[0].Id)
+					} else {
+						return docker.createContainer({ Image: 'hello-world', name: dummyName })
+					}
+				}).
+				then(container => container.start())
+
 exports.deleteContainer = deleteContainer
 exports.createHelloworld = createDummy
+
+exports.deleteImage = (imageName) => {
+	const image = docker.getImage(imageName)
+	return image.remove()
+}
+exports.pullImage = (imageName) => {
+	return docker.pull(imageName)
+}
 
 
