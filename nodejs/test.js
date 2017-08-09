@@ -15,6 +15,10 @@ dockerUtil.pullImage(imageName).
 			console.log(`pullImage success`)
 			return dockerUtil.createHelloworld(containerName)
 		}).
+		then(()=>{
+			return dockerUtil.createHelloworld(containerName)
+		}).
+
 		then(container => {
 			console.log('container create success', container)
 			return dockerUtil.deleteContainer(containerName)
@@ -23,10 +27,11 @@ dockerUtil.pullImage(imageName).
 			console.log('container delete success', container)
 			return dockerUtil.deleteImage(imageName)
 		}).
-		then(data => console.log(data)).
+		then(data => console.log('final data',data)).
 
 		then(() => dockerUtil.deleteImage(imageName)).
 		catch(err => {
 			console.error(err)
 		})
+
 //dev-peer0.pm.delphi.com-delphichaincode-v1

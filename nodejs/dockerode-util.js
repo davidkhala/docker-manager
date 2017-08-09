@@ -3,65 +3,80 @@ const Dockerode = require('dockerode')
 const docker = new Dockerode()
 
 // @return promise
-const deleteContainer = containerName =>
-		docker.listContainers({ all: true, limit: 1, filters: { name: [containerName] } }).
-				then(containers => {
-							if (containers.length) {
-								const container0Info = containers[0]
-								console.info('matched', container0Info)
-								const container0 = docker.getContainer(container0Info.Id)
-								if (container0Info.State === 'exited') {
-									return container0.remove()
-								} else {
-									return container0.kill().then(container => container.remove())
-								}
+const deleteContainer = containerName => {
+	const container = docker.getContainer(containerName)
+	return container.inspect().then((containInfo) => {
+		console.log('delete status', containInfo.State)
+		//TODO possible status:[created|restarting|running|removing|paused|exited|dead]
+		if (['exited', 'created', 'dead'].includes(containInfo.State.Status)) {
 
-							} else {
-								const message = `no container found matching ${containerName}`
-								console.warn(message)
-								return ({ statusCode: 204, reason: `empty array`, json: { message } })
-							}
+			//remove() return no data in callback
+			return container.remove()
 
-						}
-				)
-
-const createDummy = (dummyName = 'hello-world') =>
-		docker.listContainers({ all: true, limit: 1, filters: { name: [dummyName] } }).
-				then(containers => {
-					if (containers.length) {
-						//when existing
-						return docker.getContainer(containers[0].Id)
-					} else {
-						return docker.createContainer({ Image: 'hello-world', name: dummyName })
-					}
-				}).
-				then(container => container.start())
-
-exports.deleteContainer = deleteContainer
-exports.createHelloworld = createDummy
-
-exports.deleteImage = (imageName) => {
-
-	return docker.listImages({ all: true, limit: 1, filter: imageName }).
-			then(images => {
-						if (images.length) {
-							const image = docker.getImage(imageName)
-							return image.remove()
-						} else {
-							const message = `No such image: ${imageName}`
-							console.warn(message)
-							return {
-								reason: 'no such image',
-								statusCode: 404,
-								json: { message }
-							}
-						}
-					}
-			)
-
+		} else {
+			return container.kill().then(container => container.remove())
+		}
+	})
 }
+const startContainer = (containerName, imageName) => {
+	return createContainer(containerName, imageName).then(compositeContainer => {
+		if (['exited', 'created'].includes(compositeContainer.State.Status)) {
+			return compositeContainer.start()
+		} else return compositeContainer
+	})
+}
+const createContainer = (containerName, imageName) => {
+	const container = docker.getContainer(containerName)
+	return container.inspect().then(containerInfo => {
+		console.info(`${containerName} exist`, containerInfo.State)
+		container.State = containerInfo.State
+		return container
+	}).catch(err => {
+		if (err.reason === 'no such container' && err.statusCode === 404) {
+			//swallow
+			console.info(`${containerName} not exist. creating`)
 
-exports.pullImage = (imageName) => {
+			return createImage(imageName).
+					then(image => docker.createContainer({ Image: imageName, name: containerName }).
+							then(newContainer =>
+									newContainer.inspect().then(containerInfo => {
+										newContainer.State = containerInfo.State
+										return newContainer
+									})
+							)
+					)
+		} else throw err
+
+	})
+}
+const createDummy = (dummyName = 'hello-world') => {
+	const imageName='hello-world'
+	return startContainer(dummyName,imageName)
+}
+const deleteImage = (imageName) => {
+	const image = docker.getImage(imageName)
+	return image.inspect().then(imageInfo => {
+		console.info('delete image', imageInfo.RepoTags)
+		return image.remove()
+	}).catch(err => {
+		if (err.statusCode === 404 && err.reason === 'no such image') {
+			console.info(`image ${imageName} not exist, skip deleting`)
+		} else throw err
+	})
+}
+const createImage = (imageName) => {
+	const image = docker.getImage(imageName)
+	return image.inspect().then(imageInfo => {
+		console.info('image exist', imageInfo.RepoTags)
+		return image
+	}).catch(err => {
+		if (err.statusCode === 404 && err.reason === 'no such image') {
+			console.info(`image ${imageName} not exist, pulling`)
+			return pullImage(image).then(pulloutput => image)
+		} else throw err
+	})
+}
+const pullImage = (imageName) => {
 
 	//FIXED: fatal bug: if immediately do docker operation after callback:
 	// reason: 'no such container',
@@ -72,11 +87,10 @@ exports.pullImage = (imageName) => {
 		return new Promise((resolve, reject) => {
 			const onProgress = (event) => {}
 			const onFinished = (err, output) => {
-				if(err){
-					//FIXME swallow, do not reject
-					console.error(err)
-					return resolve(output)
-				}else {
+				if (err) {
+					console.error('pull image error', { err, output })
+					return reject(err)
+				} else {
 					return resolve(output)
 				}
 			}
@@ -85,5 +99,11 @@ exports.pullImage = (imageName) => {
 
 	})
 }
+exports.deleteContainer = deleteContainer
+exports.createHelloworld = createDummy
+exports.deleteImage = deleteImage
+exports.pullImage = pullImage
+exports.createContainer = createContainer
+exports.startContainer = startContainer
 
 
