@@ -16,6 +16,12 @@ const deleteContainer = containerName => {
 		} else {
 			return container.kill().then(container => container.remove())
 		}
+	}).catch(err=>{
+		if (err.reason === 'no such container' && err.statusCode === 404) {
+			//swallow
+			console.info(`${containerName} not exist. skip deleting`)
+			return undefined
+		} else throw err
 	})
 }
 const startContainer = (containerName, imageName) => {
