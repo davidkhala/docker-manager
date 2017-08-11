@@ -20,7 +20,7 @@ const deleteContainer = containerName => {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
 			//swallow
 			console.info(`${containerName} not exist. skip deleting`)
-			return undefined
+			return Promise.resolve()
 		} else throw err
 	})
 }
@@ -67,6 +67,7 @@ const deleteImage = (imageName) => {
 	}).catch(err => {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
 			console.info(`image ${imageName} not exist, skip deleting`)
+			return Promise.resolve()
 		} else throw err
 	})
 }
