@@ -109,6 +109,6 @@ elif [ "${UP_DOWN}" == "resume" ]; then
 elif [ "${UP_DOWN}" == "refresh" ]; then
     callback/onRefresh.sh
 else
-    utils/help.sh
+    callback/help.sh
     exit 1
 fi
