@@ -6,14 +6,34 @@ UP_DOWN="$1"
 
 CURRENT="$(dirname $(readlink -f ${BASH_SOURCE}))"
 
-COMPOSE_FILE=$(jq '.docker.compose' config.json)
+CONFIG_JSON=$CURRENT/config.json
+COMPOSE_FILE="$2"
 
+IMAGE_TAG="x86_64-1.0.0"
+
+remain_params=""
+for ((i = 3; i <= $#; i++)); do
+	j=${!i}
+	remain_params="$remain_params $j"
+done
+while getopts "v:" shortname $remain_params; do
+	case $shortname in
+	v)
+		echo "set docker image version tag (default: $IMAGE_TAG) ==> $OPTARG"
+		IMAGE_TAG=$OPTARG
+		;;
+	?)
+		echo "unknown argument"
+		exit 1
+		;;
+	esac
+done
 
 
 
 function clearContainer() {
     local PATTERN=""
-    local IMPOSED_ARR=$(jq -r ".docker.containers.clearPattern.imposed[]" config.json)
+    local IMPOSED_ARR=$(jq -r ".docker.containers.clearPattern.imposed[]" $CONFIG_JSON)
     for IMPOSE_EACH in $IMPOSED_ARR; do
         PATTERN="$PATTERN\|"$IMPOSE_EACH
     done
@@ -27,7 +47,7 @@ function clearContainer() {
 function clearImage() {
     local isFast=$1
     local PATTERN=""
-    local IMPOSED_ARR=$(jq -r ".docker.images.clearPattern.imposed[]" config.json)
+    local IMPOSED_ARR=$(jq -r ".docker.images.clearPattern.imposed[]" $CONFIG_JSON)
     for IMPOSE_EACH in $IMPOSED_ARR; do
         PATTERN="$PATTERN\|"$IMPOSE_EACH
     done
@@ -35,7 +55,7 @@ function clearImage() {
 
     if [ -z "$isFast" ]; then
         local BASIC=""
-        local BASIC_ARR=$(jq -r ".docker.images.clearPattern.fundamental[]" config.json)
+        local BASIC_ARR=$(jq -r ".docker.images.clearPattern.fundamental[]" $CONFIG_JSON)
         for BASIC_EACH in $BASIC_ARR; do
             BASIC="$BASIC\|"$BASIC_EACH
         done
@@ -59,22 +79,20 @@ function networkResume() {
 function networkUp() {
     callback/onUp.sh
 
-    PULL_IMAGES=$(jq '.docker.images.pull[]' config.json)
-    utils/docker.sh pull $PULL_IMAGES
-    networkResume
+    PULL_IMAGES=$(jq -r '.docker.images.pull[]' $CONFIG_JSON)
+    for pullImage in $PULL_IMAGES;do
+        utils/docker.sh pull $pullImage:$IMAGE_TAG
+    done
 
+    networkResume
     echo ===up finished:
     utils/docker.sh view
 }
 
-function clearHFC(){
-    utils/clear.sh cache /tmp/hfc-* ~/.hfc-key-store /tmp/fabric-client-kvs_peerOrg*
-}
 function networkPause() {
     utils/compose.sh down $COMPOSE_FILE
     clearContainer
     clearImage fast
-    clearHFC
 
     callback/onPause.sh
     echo ===pause finished:

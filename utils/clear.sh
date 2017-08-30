@@ -18,10 +18,6 @@ if [ "${TYPE}" == "container" ]; then
         docker rm $CONTAINER_IDS
     fi
     echo
-elif [ "${TYPE}" == "cache" ]; then
-    files=$TARGET
-    echo cache files to remove: $files
-    rm -rf $files
 elif [ "${TYPE}" == "image" ]; then
 
     DOCKER_IMAGE_IDS=$TARGET

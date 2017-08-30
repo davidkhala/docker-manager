@@ -2,27 +2,32 @@
   "docker": {
     "containers": {
       "clearPattern": {
-        "imposed":["peer","example.com","orderer","couchdb"]
+        "imposed": [
+          "peer",
+          "example.com",
+          "orderer",
+          "couchdb"
+        ]
       }
     },
     "images": {
       "pull": [
-        "hyperledger/fabric-peer:x86_64-1.0.0-rc1",
-        "hyperledger/fabric-orderer:x86_64-1.0.0-rc1",
-        "hyperledger/fabric-couchdb:x86_64-1.0.0-rc1",
-        "hyperledger/fabric-ccenv:x86_64-1.0.0-rc1",
-        "hyperledger/fabric-ca:x86_64-1.0.0-rc1"
+        "hyperledger/fabric-peer",
+        "hyperledger/fabric-orderer",
+        "hyperledger/fabric-couchdb",
+        "hyperledger/fabric-ccenv",
+        "hyperledger/fabric-ca"
       ],
       "clearPattern": {
-        "fundamental":["hyperledger","couchdb"],
-        "imposed":["dev","none"]
+        "fundamental": [
+          "hyperledger",
+          "couchdb"
+        ],
+        "imposed": [
+          "dev",
+          "none"
+        ]
       }
-    },
-    "compose": "docker-compose-marblesv3-x86_64-1.0.0-rc1.yaml"
-  },
-  "cache-files": [
-    "/tmp/hfc-*",
-    "~/.hfc-key-store",
-    "/tmp/fabric-client-kvs_peerOrg*"
-  ]
+    }
+  }
 }
