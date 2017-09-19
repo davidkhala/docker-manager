@@ -28,6 +28,6 @@ function getNodeID() {
 	viewNode "$hostName" --pretty | grep "ID" | awk '{print $2}'
 }
 function getNodeIP() {
-	echo $(viewNode "$1") | jq -r ".[0].ManagerStatus.Addr" | awk '{split($0, a, ":");print a[1]}')
+	echo $(viewNode "$1") | jq -r ".[0].ManagerStatus.Addr" | awk '{split($0, a, ":");print a[1]}'
 }
 $fcn $remain_params
