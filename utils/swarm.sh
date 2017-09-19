@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 fcn="$1"
 remain_params=""
 for ((i = 2; i <= $#; i++)); do
