@@ -30,4 +30,33 @@ function getNodeID() {
 function getNodeIP() {
 	echo $(viewNode "$1") | jq -r ".[0].ManagerStatus.Addr" | awk '{split($0, a, ":");print a[1]}'
 }
+function labelAdd() {
+	local node="$1"
+	local remain_params=""
+	for ((i = 2; i <= "$#"; i++)); do
+		j=${!i}
+		remain_params="$remain_params $j"
+	done
+	local labels=""
+	for entry in $remain_params; do
+		labels="$labels --label-add $entry"
+	done
+
+	docker node update $labels $node
+
+}
+function labelRemove(){
+    local node="$1"
+	local remain_params=""
+	for ((i = 2; i <= "$#"; i++)); do
+		j=${!i}
+		remain_params="$remain_params $j"
+	done
+	local labels=""
+	for entry in $remain_params; do
+		labels="$labels --label-rm $entry"
+	done
+
+	docker node update $labels $node
+}
 $fcn $remain_params
