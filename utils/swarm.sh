@@ -28,9 +28,12 @@ function getNodeID() {
 	viewNode "$hostName" --pretty | grep "ID" | awk '{print $2}'
 }
 function getNodeIP() {
-	echo $(viewNode "$1") | jq -r ".[0].ManagerStatus.Addr" | awk '{split($0, a, ":");print a[1]}'
+	viewNode "$1" | jq -r ".[0].ManagerStatus.Addr" | awk '{split($0, a, ":");print a[1]}'
 }
-function labelAdd() {
+function getNodeLabels(){
+    viewNode "$1" | jq ".[0].Spec.Labels"
+}
+function addNodeLabels() {
 	local node="$1"
 	local remain_params=""
 	for ((i = 2; i <= "$#"; i++)); do
@@ -45,7 +48,7 @@ function labelAdd() {
 	docker node update $labels $node
 
 }
-function labelRemove(){
+function rmNodeLabels(){
     local node="$1"
 	local remain_params=""
 	for ((i = 2; i <= "$#"; i++)); do
