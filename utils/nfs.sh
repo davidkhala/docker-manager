@@ -11,9 +11,10 @@ function add() {
 	fi
 }
 function rm() {
+	# TODO to test
 	sed -i "/${localDIR}/d" $fstab
 }
-function udpate(){
+function update(){
     rm
     add
 }
