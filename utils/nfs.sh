@@ -11,11 +11,22 @@ function add() {
 	fi
 }
 function rm() {
-	# TODO to test
-	sed -i "/${localDIR}/d" $fstab
+	read -p " Continue with sed pattern \"${localDIR}\" ? (y/n)" choice
+	case "$choice" in
+	y | Y) sed -i "/${localDIR}/d" $fstab ;;
+	n | N)
+		echo Abort...
+		exit 1
+		;;
+	*)
+		echo invalid input \"$choice\"
+		exit 1
+		;;
+	esac
+
 }
-function update(){
-    rm
-    add
+function update() {
+	rm
+	add
 }
 $fcn
