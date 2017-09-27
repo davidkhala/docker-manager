@@ -5,8 +5,7 @@ curl -sSL https://shipyard-project.com/deploy | sudo bash -s
 
 
 # uninstall
-sudo curl -sSL https://shipyard-project.com/deploy | ACTION=remove sudo -E bash -s
- cause -E preserves environmental vaiables set
+curl -sSL https://shipyard-project.com/deploy | ACTION=remove sudo -E bash -s cause -E preserves environmental vaiables set
 
 # refresh
-$ sudo curl -sSL https://shipyard-project.com/deploy | ACTION=upgrade sudo bash -s
+curl -sSL https://shipyard-project.com/deploy | ACTION=upgrade sudo bash -s
