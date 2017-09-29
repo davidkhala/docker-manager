@@ -23,6 +23,11 @@ function viewNode() {
 function viewSwarm() {
 	docker node ls
 }
+function restore(){
+	# when too much manager is lost and consensus corrupted, re-initiate is needed See in https://github.com/docker/swarmkit/issues/891
+	thisIP=$1 # 192.168.0.167
+	docker swarm init --force-new-cluster --advertise-addr $thisIP
+}
 function getNodeID() {
 	local hostName="$1"
 	viewNode "$hostName" --pretty | grep "ID" | awk '{print $2}'
