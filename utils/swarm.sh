@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 fcn="$1"
 remain_params=""
-for ((i = 2; i <= $#; i++)); do
+for ((i = 2; i <= "$#"; i++)); do
 	j=${!i}
 	remain_params="$remain_params $j"
 done
@@ -23,10 +23,14 @@ function viewNode() {
 function viewSwarm() {
 	docker node ls
 }
+function create() {
+	local ip="$1"
+	docker swarm init --advertise-addr=${ip}
+}
 function restore(){
 	# when too much manager is lost and consensus corrupted, re-initiate is needed See in https://github.com/docker/swarmkit/issues/891
-	thisIP=$1 # 192.168.0.167:2377
-	docker swarm init --force-new-cluster --advertise-addr $thisIP
+	local thisIP=$1 # 192.168.0.167:2377
+	docker swarm init --force-new-cluster --advertise-addr=${thisIP}
 }
 function getNodeID() {
 	local hostName="$1"
