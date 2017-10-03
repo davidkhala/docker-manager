@@ -14,3 +14,6 @@ newgrp docker
 # install docker-compose
 sudo su - -c "curl -L https://github.com/docker/compose/releases/download/1.14.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose"
 sudo su - -c "chmod +x /usr/local/bin/docker-compose"
+
+# install jq for parsing json content
+sudo apt-get -qq install -y jq
