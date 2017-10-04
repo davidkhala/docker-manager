@@ -20,8 +20,11 @@ function viewNode() {
 		docker node inspect "$1" $isPretty
 	fi
 }
-function viewSwarm() {
+function view() {
 	docker node ls
+}
+function managerToken(){
+	docker swarm join-token manager | grep docker| awk '{$1=$1};1'
 }
 function create() {
 	local ip="$1"
