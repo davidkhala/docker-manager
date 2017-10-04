@@ -13,7 +13,9 @@ sudo apt-get install -y docker-ce
 
 # add user as root
 sudo gpasswd -a $USER docker
-newgrp docker
+# NOTE newgrp starts a subshell with the group you specified. So that line in your script will not finish until that subshell is done.
+newgrp docker <<input
+input
 
 # install docker-compose
 sudo su - -c "curl -L https://github.com/docker/compose/releases/download/1.14.0/docker-compose-$(uname -s)-$(uname -m) > /usr/local/bin/docker-compose"
