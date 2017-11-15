@@ -13,7 +13,6 @@ function viewNode() {
 	if [ ! "$2" == "$isPretty" ]; then
 		isPretty=""
 	fi
-	echo $isPretty
 	if [ -z "$1" ]; then
 		docker node inspect self $isPretty
 	else

@@ -16,7 +16,7 @@ const deleteContainer = containerName => {
 		} else {
 			return container.kill().then(container => container.remove())
 		}
-	}).catch(err=>{
+	}).catch(err => {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
 			//swallow
 			console.info(`${containerName} not exist. skip deleting`)
@@ -24,14 +24,15 @@ const deleteContainer = containerName => {
 		} else throw err
 	})
 }
-const startContainer = (containerName, imageName) => {
-	return createContainer(containerName, imageName).then(compositeContainer => {
+const startContainer = (createOptions) => {
+	return createContainer(createOptions).then(compositeContainer => {
 		if (['exited', 'created'].includes(compositeContainer.State.Status)) {
 			return compositeContainer.start()
 		} else return compositeContainer
 	})
 }
-const createContainer = (containerName, imageName) => {
+const createContainer = (createOptions) => {
+	const { name: containerName } = createOptions
 	const container = docker.getContainer(containerName)
 	return container.inspect().then(containerInfo => {
 		console.info(`${containerName} exist`, containerInfo.State)
@@ -43,7 +44,7 @@ const createContainer = (containerName, imageName) => {
 			console.info(`${containerName} not exist. creating`)
 
 			return createImage(imageName).
-					then(image => docker.createContainer({ Image: imageName, name: containerName }).
+					then(image => docker.createContainer(createOptions).
 							then(newContainer =>
 									newContainer.inspect().then(containerInfo => {
 										newContainer.State = containerInfo.State
@@ -55,10 +56,7 @@ const createContainer = (containerName, imageName) => {
 
 	})
 }
-const createDummy = (dummyName = 'hello-world') => {
-	const imageName='hello-world'
-	return startContainer(dummyName,imageName)
-}
+
 const deleteImage = (imageName) => {
 	const image = docker.getImage(imageName)
 	return image.inspect().then(imageInfo => {
@@ -92,7 +90,7 @@ const pullImage = (imageName) => {
 	//See discussion in https://github.com/apocas/dockerode/issues/107
 	return docker.pull(imageName).then(stream => {
 		return new Promise((resolve, reject) => {
-			const onProgress = (event) => {}
+			const onProgress = (event) => { }
 			const onFinished = (err, output) => {
 				if (err) {
 					console.error('pull image error', { err, output })
@@ -107,7 +105,6 @@ const pullImage = (imageName) => {
 	})
 }
 exports.deleteContainer = deleteContainer
-exports.createHelloworld = createDummy
 exports.deleteImage = deleteImage
 exports.pullImage = pullImage
 exports.createContainer = createContainer
