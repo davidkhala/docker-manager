@@ -32,7 +32,7 @@ const startContainer = (createOptions) => {
 	})
 }
 const createContainer = (createOptions) => {
-	const { name: containerName } = createOptions
+	const { name: containerName, Image: imageName } = createOptions
 	const container = docker.getContainer(containerName)
 	return container.inspect().then(containerInfo => {
 		console.info(`${containerName} exist`, containerInfo.State)
