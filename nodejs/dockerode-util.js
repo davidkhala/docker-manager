@@ -4,9 +4,10 @@ const docker = new Dockerode()
 
 // @return promise
 const deleteContainer = containerName => {
+	console.debug(`--delete container ${containerName}`)
 	const container = docker.getContainer(containerName)
 	return container.inspect().then((containInfo) => {
-		console.log('delete status', containInfo.State)
+		console.log('---- before delete', containInfo.State)
 		//TODO possible status:[created|restarting|running|removing|paused|exited|dead]
 		if (['exited', 'created', 'dead'].includes(containInfo.State.Status)) {
 
@@ -19,7 +20,7 @@ const deleteContainer = containerName => {
 	}).catch(err => {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
 			//swallow
-			console.info(`${containerName} not exist. skip deleting`)
+			console.info(`---- ${containerName} not found. deleting skipped`)
 			return Promise.resolve()
 		} else throw err
 	})
@@ -35,7 +36,7 @@ const createContainer = (createOptions) => {
 	const { name: containerName, Image: imageName } = createOptions
 	const container = docker.getContainer(containerName)
 	return container.inspect().then(containerInfo => {
-		console.info(`${containerName} exist`, containerInfo.State)
+		console.info(`${containerName} exist `, containerInfo.State)
 		container.State = containerInfo.State
 		return container
 	}).catch(err => {
