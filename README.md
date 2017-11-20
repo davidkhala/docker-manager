@@ -16,3 +16,8 @@ https://get.daocloud.io/
  - 下载docker-ce最新版本（TODO：我也还不知道如何下载指定版本的）：``$ ./install.sh dockerCN``
  - 下载docker-compose指定版本如1.14.0：``$ ./install.sh composeCN -c 1.14.0``
  - 加速docker-hub：``$ ./install.sh dockerHubCN``
+
+关于安装nodejs
+-----------------
+暂时还没加速nodejs本体的安装，依然沿用debian apt的安装方案
+如果需要加速npm包的下载：``$ ./nodejs/install.sh cn``
