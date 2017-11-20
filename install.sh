@@ -31,6 +31,13 @@ while getopts "d:c:j:" shortname $remain_params; do
 	esac
 done
 
+function suDocker(){
+    gpasswd -a $USER docker
+	# NOTE newgrp starts a subshell with the group you specified. So that line in your script will not finish until that subshell is done.
+	newgrp docker <<input
+input
+}
+
 function dockerCN() {
 	curl -sSL https://get.daocloud.io/docker | sh
 }
@@ -43,6 +50,18 @@ function dockerHubCN() {
 function composeCN() {
 	curl -L https://get.daocloud.io/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >/usr/local/bin/docker-compose
 	chmod +x /usr/local/bin/docker-compose
+}
+function cn(){
+    dockerCN
+    suDocker
+    jq
+    composeCN
+    dockerHubCN
+}
+function jq(){
+    apt-get update
+    # install jq for parsing json content
+	apt-get -qq install -y jq=$jqVersion
 }
 
 function default() {
@@ -59,13 +78,8 @@ function default() {
 	apt-get update
 	apt-get -qq install -y docker-ce=$dockerVersion
 
-	# install jq for parsing json content
-	apt-get -qq install -y jq=$jqVersion
-	# add user as root
-	gpasswd -a $USER docker
-	# NOTE newgrp starts a subshell with the group you specified. So that line in your script will not finish until that subshell is done.
-	newgrp docker <<input
-input
+    jq
+	suDocker
 	curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >/usr/local/bin/docker-compose
 	chmod +x /usr/local/bin/docker-compose
 
