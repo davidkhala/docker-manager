@@ -31,13 +31,6 @@ while getopts "d:c:j:" shortname $remain_params; do
 	esac
 done
 
-function suDocker(){
-    gpasswd -a $USER docker
-	# NOTE newgrp starts a subshell with the group you specified. So that line in your script will not finish until that subshell is done.
-	newgrp docker <<input
-input
-}
-
 function dockerCN() {
 	curl -sSL https://get.daocloud.io/docker | sh
 }
@@ -53,7 +46,6 @@ function composeCN() {
 }
 function cn(){
     dockerCN
-    suDocker
     jq
     composeCN
     dockerHubCN
@@ -79,7 +71,6 @@ function default() {
 	apt-get -qq install -y docker-ce=$dockerVersion
 
     jq
-	suDocker
 	curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >/usr/local/bin/docker-compose
 	chmod +x /usr/local/bin/docker-compose
 
