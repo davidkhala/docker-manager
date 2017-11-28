@@ -56,7 +56,7 @@ function addNodeLabels() {
 		labels="$labels --label-add $entry"
 	done
 
-	docker node update $labels $node
+	docker node update $labels $node 1>/dev/null
 
 }
 function rmNode() {
