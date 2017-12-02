@@ -45,9 +45,7 @@ function composeCN() {
 	chmod +x /usr/local/bin/docker-compose
 }
 function cn(){
-    apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
-
-	apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+    apt-get install -y curl
 	dockerCN
     jq
     composeCN
