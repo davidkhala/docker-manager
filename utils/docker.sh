@@ -18,7 +18,10 @@ function pullBatch() {
 }
 function pullIfNotExist() {
 	if [ -z $(docker images -q $1) ]; then
+		echo $1 does not exist, start docker pull...
 		docker pull $1
+    else
+        echo $1 did exist, skip.
 	fi
 }
 function viewContainerPort() {
