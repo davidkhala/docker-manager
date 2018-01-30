@@ -45,31 +45,31 @@ function composeCN() {
 	chmod +x /usr/local/bin/docker-compose
 }
 function cn(){
-    apt-get install -y curl
+    sudo apt-get install -y curl
 	dockerCN
     jq
     composeCN
     dockerHubCN
 }
 function jq(){
-    apt-get update
+    sudo apt-get update
     # install jq for parsing json content
-	apt-get -qq install -y jq=$jqVersion
+	sudo apt-get -qq install -y jq=$jqVersion
 }
 
 function default() {
 
 	# install docker-ce
-	apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
+	sudo apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
 
-	apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+	sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
 	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-	apt-key fingerprint 0EBFCD88
-	add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+	sudo apt-key fingerprint 0EBFCD88
+	sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
    $(lsb_release -cs) \
    stable"
-	apt-get update
-	apt-get -qq install -y docker-ce=$dockerVersion
+	sudo apt-get update
+	sudo apt-get -qq install -y docker-ce=$dockerVersion
 
     jq
 	curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >/usr/local/bin/docker-compose
