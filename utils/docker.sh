@@ -1,21 +1,11 @@
 #!/bin/bash
 
-# TODO pull and view
-
 fcn=$1
 remain_params=""
 for ((i = 2; i <= $#; i++)); do
 	j=${!i}
 	remain_params="$remain_params $j"
 done
-function pullBatch() {
-	echo =====docker batch pull process start
-	startSeconds=$(date +%s)
-	for ((i = 1; i <= $#; i++)); do
-		docker pull ${!i}
-	done
-	echo =====docker pull process cousume $(($(date +%s) - startSeconds)) seconds=====
-}
 function pullIfNotExist() {
 	if [ -z $(docker images -q $1) ]; then
 		echo $1 does not exist, start docker pull...
