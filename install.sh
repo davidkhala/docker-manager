@@ -9,7 +9,7 @@ done
 
 dockerVersion=17.09.0~ce-0~ubuntu
 composeVersion=1.14.0
-jqVersion=1.5+dfsg-1
+jqVersion=1.5
 while getopts "d:c:j:" shortname $remain_params; do
 	case $shortname in
 	d)
@@ -47,32 +47,36 @@ function composeCN() {
 function cn(){
     sudo apt-get install -y curl
 	dockerCN
-    jq
+    installjq
     composeCN
     dockerHubCN
 }
-function jq(){
-    sudo apt-get update
-    # install jq for parsing json content
-	sudo apt-get -qq install -y jq=$jqVersion
+function installjq(){
+    if ! jq --version | grep $jqVersion;then
+        # install jq for parsing json content
+        sudo apt-get update
+	    sudo apt-get -qq install -y jq=${jqVersion}*
+    fi
 }
 
 function default() {
+    if ! docker version | grep 17.12.1;then
+        # install docker-ce
+        sudo apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
 
-	# install docker-ce
-	sudo apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
-
-	sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
-	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-	sudo apt-key fingerprint 0EBFCD88
-	sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-	sudo apt-get update
-	sudo apt-get -qq install -y --allow-downgrades docker-ce=$dockerVersion
-
-    jq
-	curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >/usr/local/bin/docker-compose
-	chmod +x /usr/local/bin/docker-compose
-
+        sudo apt-get install -y apt-transport-https ca-certificates curl software-properties-common
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo apt-key fingerprint 0EBFCD88
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        sudo apt-get update
+        sudo apt-get -qq install -y --allow-downgrades docker-ce=$dockerVersion
+    fi
+    installjq
+    if ! docker-compose version | grep $composeVersion;then
+        curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >docker-compose
+        chmod +x docker-compose
+        sudo mv docker-compose /usr/local/bin/docker-compose
+    fi
 }
 
 if [ -n "$fcn" ]; then
