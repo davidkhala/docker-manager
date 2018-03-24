@@ -25,6 +25,13 @@ function view() {
 function managerToken() {
 	docker swarm join-token manager | grep docker | awk '{$1=$1};1'
 }
+function createIfNotExist(){
+    local ip="$1"
+    if ! view ;then
+        create $ip
+        view
+    fi
+}
 function create() {
 	local ip="$1"
 	docker swarm init --advertise-addr=${ip}
