@@ -25,6 +25,19 @@ function view() {
 function managerToken() {
 	docker swarm join-token manager | grep docker | awk '{$1=$1};1'
 }
+function belongTo(){
+    local remain_params="$1"
+	for ((i = 2; i <= ${#}; i++)); do
+		j=${!i}
+		remain_params="$remain_params $j"
+	done
+	paramArray=($remain_params)
+    thisToken=($(managerToken))
+    if [ ! "${thisToken[4]}" == "${paramArray[4]}" ];then
+        echo docker token not matched[${#remain_params}]:$remain_params
+        exit 1
+    fi
+}
 function createIfNotExist(){
     local ip="$1"
     if ! view ;then
