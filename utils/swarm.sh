@@ -38,6 +38,11 @@ function belongTo(){
         exit 1
     fi
 }
+#FIXME to test
+function updateConstraint(){
+    local service=$1
+    docker service update --constraint-add $service
+}
 function createIfNotExist(){
     local ip="$1"
     if ! view ;then

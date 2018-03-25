@@ -7,7 +7,7 @@ for ((i = 2; i <= ${#}; i++)); do
 	remain_params="$remain_params $j"
 done
 
-dockerVersion=17.09.0~ce-0~ubuntu
+dockerVersion=18.03.0
 composeVersion=1.14.0
 jqVersion=1.5
 while getopts "d:c:j:" shortname $remain_params; do
@@ -60,7 +60,7 @@ function installjq(){
 }
 
 function default() {
-    if ! docker version | grep 17.12.1;then
+    if ! docker version | grep $dockerVersion;then
         # install docker-ce
         sudo apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual
 
@@ -69,7 +69,7 @@ function default() {
         sudo apt-key fingerprint 0EBFCD88
         sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
         sudo apt-get update
-        sudo apt-get -qq install -y --allow-downgrades docker-ce=$dockerVersion
+        sudo apt-get -qq install -y --allow-downgrades docker-ce=${dockerVersion}*
     fi
     installjq
     if ! docker-compose version | grep $composeVersion;then
