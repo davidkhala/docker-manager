@@ -32,7 +32,7 @@ function belongTo(){
 		remain_params="$remain_params $j"
 	done
 	paramArray=($remain_params)
-    thisToken=($(managerToken))
+    thisToken=($(managerToken)) # TODO if not joined, managerToken will fail
     if [ ! "${thisToken[4]}" == "${paramArray[4]}" ];then
         echo docker token not matched[${#remain_params}]:$remain_params
         exit 1
@@ -45,6 +45,7 @@ function updateConstraint(){
 }
 function createIfNotExist(){
     local ip="$1"
+#    TODO cannot handle: It's possible that too few managers are online. Make sure more than half of the managers are online.
     if ! view ;then
         create $ip
         view
