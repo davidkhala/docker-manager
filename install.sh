@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -e -x
 fcn=$1
 remain_params=""
 for ((i = 2; i <= ${#}; i++)); do
@@ -7,7 +7,7 @@ for ((i = 2; i <= ${#}; i++)); do
 	remain_params="$remain_params $j"
 done
 
-dockerVersion=18.03.0
+dockerVersion=17.12.0
 composeVersion=1.14.0
 jqVersion=1.5
 while getopts "d:c:j:" shortname $remain_params; do
