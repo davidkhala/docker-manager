@@ -25,31 +25,37 @@ function view() {
 function managerToken() {
 	docker swarm join-token manager | grep docker | awk '{$1=$1};1'
 }
-function belongTo(){
-    local remain_params="$1"
+function belongTo() {
+	local remain_params="$1"
 	for ((i = 2; i <= ${#}; i++)); do
 		j=${!i}
 		remain_params="$remain_params $j"
 	done
 	paramArray=($remain_params)
-    thisToken=($(managerToken)) # TODO if not joined, managerToken will fail
-    if [ ! "${thisToken[4]}" == "${paramArray[4]}" ];then
-        echo docker token not matched[${#remain_params}]:$remain_params
-        exit 1
-    fi
+	thisToken=($(managerToken)) # TODO if not joined, managerToken will fail
+	if [ ! "${thisToken[4]}" == "${paramArray[4]}" ]; then
+		echo docker token not matched[${#remain_params}]:$remain_params
+		exit 1
+	fi
 }
-#FIXME to test
-function updateConstraint(){
-    local service=$1
-    docker service update --constraint-add $service
+function rmConstraint() {
+	local service=$1
+	local constraint=$2 # should be exact name to match: 'node.role==manager'
+	docker service update $service --constraint-rm $constraint
 }
-function createIfNotExist(){
-    local ip="$1"
-#    TODO cannot handle: It's possible that too few managers are online. Make sure more than half of the managers are online.
-    if ! view ;then
-        create $ip
-        view
-    fi
+function updateConstraint() {
+	local service=$1
+	local constraint=$2 # should be exact name to match: 'node.role==manager'
+	docker service update $service --constraint-add $constraint
+}
+
+function createIfNotExist() {
+	local ip="$1"
+	#    TODO cannot handle: It's possible that too few managers are online. Make sure more than half of the managers are online.
+	if ! view; then
+		create $ip
+		view
+	fi
 }
 function create() {
 	local ip="$1"
