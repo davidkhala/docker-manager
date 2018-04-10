@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-
+set -e
 fcn="$1"
 function cn(){
     npm config set registry https://registry.npm.taobao.org/
