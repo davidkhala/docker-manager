@@ -1,13 +1,15 @@
 const Dockerode = require('dockerode');
 
 const docker = new Dockerode();
-
+const Log4js = require('log4js');
+const logger = Log4js.getLogger('dockerode');
+logger.level = 'debug';
 // @return promise
-const deleteContainer = containerName => {
-	console.debug(`--delete container ${containerName}`);
+exports.deleteContainer = containerName => {
+	logger.debug(`--delete container ${containerName}`);
 	const container = docker.getContainer(containerName);
 	return container.inspect().then((containInfo) => {
-		console.log('---- before delete', containInfo.State);
+		logger.info('---- before delete', containInfo.State);
 		//TODO possible status:[created|restarting|running|removing|paused|exited|dead]
 		if (['exited', 'created', 'dead'].includes(containInfo.State.Status)) {
 
@@ -20,29 +22,29 @@ const deleteContainer = containerName => {
 	}).catch(err => {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
 			//swallow
-			console.info(`---- ${containerName} not found. deleting skipped`);
+			logger.info(`---- ${containerName} not found. deleting skipped`);
 			return Promise.resolve();
 		} else throw err;
 	});
 };
-const startContainer = (createOptions) => {
-	return createContainer(createOptions).then(compositeContainer => {
+exports.startContainer = (createOptions) => {
+	return module.exports.createContainer(createOptions).then(compositeContainer => {
 		if (['exited', 'created'].includes(compositeContainer.State.Status)) {
 			return compositeContainer.start();
 		} else return compositeContainer;
 	});
 };
-const createContainer = (createOptions) => {
+exports.createContainer = (createOptions) => {
 	const { name: containerName, Image: imageName } = createOptions;
 	const container = docker.getContainer(containerName);
 	return container.inspect().then(containerInfo => {
-		console.info(`${containerName} exist `, containerInfo.State);
+		logger.info(`${containerName} exist `, containerInfo.State);
 		container.State = containerInfo.State;
 		return container;
 	}).catch(err => {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
 			//swallow
-			console.info(`${containerName} not exist. creating`);
+			logger.info(`${containerName} not exist. creating`);
 
 			return createImage(imageName).
 				then(image => docker.createContainer(createOptions).
@@ -58,14 +60,14 @@ const createContainer = (createOptions) => {
 	});
 };
 
-const deleteImage = (imageName) => {
+exports.deleteImage = (imageName) => {
 	const image = docker.getImage(imageName);
 	return image.inspect().then(imageInfo => {
-		console.info('delete image', imageInfo.RepoTags);
+		logger.info('delete image', imageInfo.RepoTags);
 		return image.remove();
 	}).catch(err => {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
-			console.info(`image ${imageName} not exist, skip deleting`);
+			logger.info(`image ${imageName} not exist, skip deleting`);
 			return Promise.resolve();
 		} else throw err;
 	});
@@ -73,16 +75,16 @@ const deleteImage = (imageName) => {
 const createImage = (imageName) => {
 	const image = docker.getImage(imageName);
 	return image.inspect().then(imageInfo => {
-		console.info('image exist', imageInfo.RepoTags);
+		logger.info('image exist', imageInfo.RepoTags);
 		return image;
 	}).catch(err => {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
-			console.info(`image ${imageName} not exist, pulling`);
-			return pullImage(image).then(pulloutput => image);
+			logger.info(`image ${imageName} not exist, pulling`);
+			return module.exports.pullImage(image).then(pulloutput => image);
 		} else throw err;
 	});
 };
-const pullImage = (imageName) => {
+exports.pullImage = (imageName) => {
 
 	//FIXED: fatal bug: if immediately do docker operation after callback:
 	// reason: 'no such container',
@@ -94,7 +96,7 @@ const pullImage = (imageName) => {
 			const onProgress = (event) => { };
 			const onFinished = (err, output) => {
 				if (err) {
-					console.error('pull image error', { err, output });
+					logger.error('pull image error', { err, output });
 					return reject(err);
 				} else {
 					return resolve(output);
@@ -105,10 +107,5 @@ const pullImage = (imageName) => {
 
 	});
 };
-exports.deleteContainer = deleteContainer;
-exports.deleteImage = deleteImage;
-exports.pullImage = pullImage;
-exports.createContainer = createContainer;
-exports.startContainer = startContainer;
 
 
