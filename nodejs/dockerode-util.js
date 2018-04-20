@@ -34,8 +34,133 @@ exports.startContainer = (createOptions) => {
 		} else return compositeContainer;
 	});
 };
+exports.swarmInit = ({AdvertiseAddr}) => {
+	const opts = {
+		AdvertiseAddr,
+		'ForceNewCluster': false,
+		'Spec': {
+			'Orchestration': {},
+			'Raft': {},
+			'Dispatcher': {},
+			'CAConfig': {}
+		}
+	};
+
+	return docker.swarmInit(opts);
+};
+exports.swarmJoin = ({AdvertiseAddr, JoinToken}) => {
+	const opts = {
+		AdvertiseAddr,
+		JoinToken
+	};
+	return docker.swarmJoin(opts);
+};
+exports.swarmLeave = () => {
+	return docker.swarmLeave({'force': true});
+};
+exports.nodeInspect = (id) => {
+	const optsf = {
+		path: `/nodes/${id}`,
+		method: 'GET',
+		options: {},
+		statusCodes: {
+			200: true,
+			404: 'no such node',
+			406: 'node is not part of a swarm',
+			500: 'server error'
+		}
+	};
+	const modem = docker.getNode(id).modem;
+	return new modem.Promise((resolve, reject) => {
+		modem.dial(optsf, (err, data) => {
+			if (err) {
+				return reject(err);
+			}
+			resolve(data);
+		});
+	});
+};
+
+exports.swarmServiceName = (serviceName) => {
+	return serviceName.replace(/\./g, '-');
+};
+exports.serviceCreate = ({Image, Name,Cmd, network, Constraints, volumes, ports, Env,Aliases}) => {
+	const serviceName=module.exports.swarmServiceName(Name);
+	if(Name!==serviceName){
+		if(Array.isArray(Aliases)){
+			Aliases = Aliases.concat([Name]);
+		}else {
+			Aliases = [Name];
+		}
+	}
+	const opts = {
+		Name:serviceName,
+		TaskTemplate: {
+			ContainerSpec: {
+				Image,
+				Env,
+                Command:Cmd,
+				Mounts: volumes.map(({volumeName, volume}) => {
+					return {
+						'ReadOnly': false,
+						'Source': volumeName,
+						'Target': volume,
+						'Type': 'volume',
+						// "VolumeOptions": {
+						//     "DriverConfig": {
+						//     },
+						// }
+					};
+				})
+			},
+			Networks: [{Target: network,Aliases}],
+			Resources: {
+				Limits: {},
+				Reservations: {}
+			},
+			RestartPolicy: {
+				Condition: 'on-failure',
+				MaxAttempts: 0
+			},
+			Placement: {Constraints}
+		},
+		Mode: {
+			Replicated: {
+				Replicas: 1
+			}
+		},
+		EndpointSpec: {
+			Ports: ports.map(({host, container}) => {
+				return {
+					'Protocol': 'tcp',
+					'PublishedPort': host,
+					'TargetPort': container
+				};
+			})
+		}
+	};
+	const service = docker.getService(Name);
+	return service.inspect().then((info) => {
+		Object.assign(service, info);
+		logger.debug(`service ${Name} exist `, service);
+		return service;
+	}).catch(err => {
+		if (err.statusCode === 404) {
+			return docker.createService(opts);
+		} else {
+			throw err;
+		}
+	});
+
+};
+exports.serviceList = () => {
+	return docker.listServices();
+};
+exports.swarmInspect = () => {
+	return docker.swarmInspect();
+};
 exports.createContainer = (createOptions) => {
-	const { name: containerName, Image: imageName } = createOptions;
+	const {name: containerName, Image: imageName} = createOptions;
 	const container = docker.getContainer(containerName);
 	return container.inspect().then(containerInfo => {
 		logger.info(`${containerName} exist `, containerInfo.State);
@@ -46,15 +171,13 @@ exports.createContainer = (createOptions) => {
 			//swallow
 			logger.info(`${containerName} not exist. creating`);
 
-			return createImage(imageName).
-				then(image => docker.createContainer(createOptions).
-					then(newContainer =>
-						newContainer.inspect().then(containerInfo => {
-							newContainer.State = containerInfo.State;
-							return newContainer;
-						})
-					)
-				);
+			return createImage(imageName).then(image => docker.createContainer(createOptions).then(newContainer =>
+				newContainer.inspect().then(containerInfo => {
+					newContainer.State = containerInfo.State;
+					return newContainer;
+				})
+			)
+			);
 		} else throw err;
 
 	});
@@ -93,10 +216,11 @@ exports.pullImage = (imageName) => {
 	//See discussion in https://github.com/apocas/dockerode/issues/107
 	return docker.pull(imageName).then(stream => {
 		return new Promise((resolve, reject) => {
-			const onProgress = (event) => { };
+			const onProgress = (event) => {
+			};
 			const onFinished = (err, output) => {
 				if (err) {
-					logger.error('pull image error', { err, output });
+					logger.error('pull image error', {err, output});
 					return reject(err);
 				} else {
 					return resolve(output);
