@@ -13,7 +13,7 @@ const delay = (t) => {
 const createDummy = (dummyName = 'hello-world') => {
 	const imageName = 'hello-world'
 
-	return dockerUtil.startContainer({ name: dummyName, Image: imageName })
+	return dockerUtil.containerStart({ name: dummyName, Image: imageName })
 }
 const test1 = () => {
 	return dockerUtil.pullImage(imageName).

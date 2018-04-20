@@ -27,8 +27,8 @@ exports.deleteContainer = containerName => {
 		} else throw err;
 	});
 };
-exports.startContainer = (createOptions) => {
-	return module.exports.createContainer(createOptions).then(compositeContainer => {
+exports.containerStart = (createOptions) => {
+	return module.exports.containerCreate(createOptions).then(compositeContainer => {
 		if (['exited', 'created'].includes(compositeContainer.State.Status)) {
 			return compositeContainer.start();
 		} else return compositeContainer;
@@ -99,7 +99,7 @@ exports.serviceCreate = ({Image, Name,Cmd, network, Constraints, volumes, ports,
 			ContainerSpec: {
 				Image,
 				Env,
-                Command:Cmd,
+				Command:Cmd,
 				Mounts: volumes.map(({volumeName, volume}) => {
 					return {
 						'ReadOnly': false,
@@ -159,7 +159,7 @@ exports.serviceList = () => {
 exports.swarmInspect = () => {
 	return docker.swarmInspect();
 };
-exports.createContainer = (createOptions) => {
+exports.containerCreate = (createOptions) => {
 	const {name: containerName, Image: imageName} = createOptions;
 	const container = docker.getContainer(containerName);
 	return container.inspect().then(containerInfo => {
@@ -171,15 +171,12 @@ exports.createContainer = (createOptions) => {
 			//swallow
 			logger.info(`${containerName} not exist. creating`);
 
-			return createImage(imageName).then(image => docker.createContainer(createOptions).then(newContainer =>
-				newContainer.inspect().then(containerInfo => {
+			return createImage(imageName).then(() => docker.createContainer(createOptions))
+				.then(newContainer =>newContainer.inspect().then(containerInfo => {
 					newContainer.State = containerInfo.State;
 					return newContainer;
-				})
-			)
-			);
+				}));
 		} else throw err;
-
 	});
 };
 
@@ -231,5 +228,19 @@ exports.pullImage = (imageName) => {
 
 	});
 };
+exports.volumeCreateIfNotExist = ({Name,path})=>{
+	return docker.createVolume({
+		Name,
+		Driver: 'local',
+		DriverOpts:{
+			o:'bind',
+			device:path,
+			type:'none'
+		}
+	});
+};
+exports.volumeRemove = ({Name})=>{
+	return docker.getVolume(Name).remove();
+}
 
 
