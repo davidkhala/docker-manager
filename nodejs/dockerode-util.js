@@ -84,6 +84,20 @@ exports.nodeInspect = (id) => {
 exports.swarmServiceName = (serviceName) => {
 	return serviceName.replace(/\./g, '-');
 };
+exports.serviceExist = ({Name})=>{
+	const serviceName=module.exports.swarmServiceName(Name);
+	return docker.getService(serviceName).inspect().catch(err=>{
+		if(err.toString().includes(`service ${serviceName} not found`)){
+			return false;
+		}else {
+			throw err;
+		}
+	});
+};
+exports.serviceInspect = ({Name})=>{
+	const serviceName=module.exports.swarmServiceName(Name);
+	return docker.getService(serviceName).inspect();
+};
 exports.serviceCreate = ({Image, Name,Cmd, network, Constraints, volumes, ports, Env,Aliases}) => {
 	const serviceName=module.exports.swarmServiceName(Name);
 	if(Name!==serviceName){
@@ -100,12 +114,12 @@ exports.serviceCreate = ({Image, Name,Cmd, network, Constraints, volumes, ports,
 				Image,
 				Env,
 				Command:Cmd,
-				Mounts: volumes.map(({volumeName, volume}) => {
+				Mounts: volumes.map(({volumeName, volume,Type='volume'}) => {
 					return {
 						'ReadOnly': false,
 						'Source': volumeName,
 						'Target': volume,
-						'Type': 'volume',
+						Type,
 						// "VolumeOptions": {
 						//     "DriverConfig": {
 						//     },
@@ -241,6 +255,12 @@ exports.volumeCreateIfNotExist = ({Name,path})=>{
 };
 exports.volumeRemove = ({Name})=>{
 	return docker.getVolume(Name).remove();
-}
+};
+exports.taskList = ({services,nodes})=>{
+	return docker.listTasks({filters: {
+		service:Array.isArray(services)?services:[],
+		node:Array.isArray(nodes)?nodes:[],
+	}});
+};
 
 

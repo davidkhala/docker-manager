@@ -71,7 +71,7 @@ function getNodeID() {
 	viewNode "$hostName" --pretty | grep "ID" | awk '{print $2}'
 }
 function getNodeIP() {
-	viewNode "$1" | jq -r ".[0].ManagerStatus.Addr" | awk '{split($0, a, ":");print a[1]}'
+	viewNode "$1" | jq -r ".[0].Status.Addr"
 }
 function getNodeLabels() {
 	viewNode "$1" | jq ".[0].Spec.Labels"
