@@ -185,7 +185,7 @@ exports.containerCreate = (createOptions) => {
 			//swallow
 			logger.info(`${containerName} not exist. creating`);
 
-			return createImage(imageName).then(() => docker.createContainer(createOptions))
+			return module.exports.imageCreate(imageName).then(() => docker.createContainer(createOptions))
 				.then(newContainer =>newContainer.inspect().then(containerInfo => {
 					newContainer.State = containerInfo.State;
 					return newContainer;
@@ -194,7 +194,7 @@ exports.containerCreate = (createOptions) => {
 	});
 };
 
-exports.deleteImage = (imageName) => {
+exports.imageDelete = (imageName) => {
 	const image = docker.getImage(imageName);
 	return image.inspect().then(imageInfo => {
 		logger.info('delete image', imageInfo.RepoTags);
@@ -206,7 +206,7 @@ exports.deleteImage = (imageName) => {
 		} else throw err;
 	});
 };
-const createImage = (imageName) => {
+exports.imageCreate = (imageName) => {
 	const image = docker.getImage(imageName);
 	return image.inspect().then(imageInfo => {
 		logger.info('image exist', imageInfo.RepoTags);
@@ -214,11 +214,11 @@ const createImage = (imageName) => {
 	}).catch(err => {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
 			logger.info(`image ${imageName} not exist, pulling`);
-			return module.exports.pullImage(image).then(pulloutput => image);
+			return module.exports.imagePull(image).then(pulloutput => image);
 		} else throw err;
 	});
 };
-exports.pullImage = (imageName) => {
+exports.imagePull = (imageName) => {
 
 	//FIXED: fatal bug: if immediately do docker operation after callback:
 	// reason: 'no such container',
@@ -262,5 +262,14 @@ exports.taskList = ({services,nodes})=>{
 		node:Array.isArray(nodes)?nodes:[],
 	}});
 };
-
-
+exports.networkCreate =({Name},swarm)=>{
+	return docker.createNetwork({
+		Name,CheckDuplicate:true,
+		Driver:swarm?"overlay":"bridge",
+		Internal:false,
+		Attachable:true,
+	})
+};
+exports.networkInspect = ({Name})=>{
+	return docker.getNetwork(Name).inspect()
+};
