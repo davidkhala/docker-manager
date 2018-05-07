@@ -4,18 +4,15 @@ const docker = new Dockerode();
 const Log4js = require('log4js');
 const logger = Log4js.getLogger('dockerode');
 logger.level = 'debug';
-// @return promise
 exports.deleteContainer = containerName => {
 	logger.debug(`--delete container ${containerName}`);
 	const container = docker.getContainer(containerName);
 	return container.inspect().then((containInfo) => {
-		logger.info('---- before delete', containInfo.State);
-		//TODO possible status:[created|restarting|running|removing|paused|exited|dead]
+		logger.debug('--before delete', containInfo.State.Status);
+		//possible status:[created|restarting|running|removing|paused|exited|dead]
 		if (['exited', 'created', 'dead'].includes(containInfo.State.Status)) {
-
 			//remove() return no data in callback
 			return container.remove();
-
 		} else {
 			return container.kill().then(container => container.remove());
 		}
@@ -33,6 +30,20 @@ exports.containerStart = (createOptions) => {
 			return compositeContainer.start();
 		} else return compositeContainer;
 	});
+};
+exports.containerExec = ({container_name,Cmd})=>{
+	const container = docker.getContainer(container_name);
+	return container.exec({Cmd}).then(exec =>
+		exec.start().then(() => exec.inspect())
+	);
+};
+exports.containerList = ({all,network,status})=>{
+	// status=(created 	restarting 	running 	paused 	exited 	dead)
+	const filters = {
+		network:network?[network]:[],
+		status:status?[status]:[]
+	};
+	return docker.listContainers({all,filters});
 };
 exports.swarmInit = ({AdvertiseAddr}) => {
 	const opts = {
@@ -84,37 +95,37 @@ exports.nodeInspect = (id) => {
 exports.swarmServiceName = (serviceName) => {
 	return serviceName.replace(/\./g, '-');
 };
-exports.serviceExist = ({Name})=>{
-	const serviceName=module.exports.swarmServiceName(Name);
-	return docker.getService(serviceName).inspect().catch(err=>{
-		if(err.toString().includes(`service ${serviceName} not found`)){
+exports.serviceExist = ({Name}) => {
+	const serviceName = module.exports.swarmServiceName(Name);
+	return docker.getService(serviceName).inspect().catch(err => {
+		if (err.toString().includes(`service ${serviceName} not found`)) {
 			return false;
-		}else {
+		} else {
 			throw err;
 		}
 	});
 };
-exports.serviceInspect = ({Name})=>{
-	const serviceName=module.exports.swarmServiceName(Name);
+exports.serviceInspect = ({Name}) => {
+	const serviceName = module.exports.swarmServiceName(Name);
 	return docker.getService(serviceName).inspect();
 };
-exports.serviceCreate = ({Image, Name,Cmd, network, Constraints, volumes, ports, Env,Aliases}) => {
-	const serviceName=module.exports.swarmServiceName(Name);
-	if(Name!==serviceName){
-		if(Array.isArray(Aliases)){
+exports.serviceCreate = ({Image, Name, Cmd, network, Constraints, volumes, ports, Env, Aliases}) => {
+	const serviceName = module.exports.swarmServiceName(Name);
+	if (Name !== serviceName) {
+		if (Array.isArray(Aliases)) {
 			Aliases = Aliases.concat([Name]);
-		}else {
+		} else {
 			Aliases = [Name];
 		}
 	}
 	const opts = {
-		Name:serviceName,
+		Name: serviceName,
 		TaskTemplate: {
 			ContainerSpec: {
 				Image,
 				Env,
-				Command:Cmd,
-				Mounts: volumes.map(({volumeName, volume,Type='volume'}) => {
+				Command: Cmd,
+				Mounts: volumes.map(({volumeName, volume, Type = 'volume'}) => {
 					return {
 						'ReadOnly': false,
 						'Source': volumeName,
@@ -127,7 +138,7 @@ exports.serviceCreate = ({Image, Name,Cmd, network, Constraints, volumes, ports,
 					};
 				})
 			},
-			Networks: [{Target: network,Aliases}],
+			Networks: [{Target: network, Aliases}],
 			Resources: {
 				Limits: {},
 				Reservations: {}
@@ -186,7 +197,7 @@ exports.containerCreate = (createOptions) => {
 			logger.info(`${containerName} not exist. creating`);
 
 			return module.exports.imageCreate(imageName).then(() => docker.createContainer(createOptions))
-				.then(newContainer =>newContainer.inspect().then(containerInfo => {
+				.then(newContainer => newContainer.inspect().then(containerInfo => {
 					newContainer.State = containerInfo.State;
 					return newContainer;
 				}));
@@ -214,7 +225,7 @@ exports.imageCreate = (imageName) => {
 	}).catch(err => {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
 			logger.info(`image ${imageName} not exist, pulling`);
-			return module.exports.imagePull(image).then(pulloutput => image);
+			return module.exports.imagePull(imageName).then(()=> image);
 		} else throw err;
 	});
 };
@@ -242,34 +253,40 @@ exports.imagePull = (imageName) => {
 
 	});
 };
-exports.volumeCreateIfNotExist = ({Name,path})=>{
+
+exports.volumeCreateIfNotExist = ({Name, path}) => {
 	return docker.createVolume({
 		Name,
 		Driver: 'local',
-		DriverOpts:{
-			o:'bind',
-			device:path,
-			type:'none'
+		DriverOpts: {
+			o: 'bind',
+			device: path,
+			type: 'none'
 		}
 	});
 };
-exports.volumeRemove = ({Name})=>{
+exports.volumeRemove = ({Name}) => {
 	return docker.getVolume(Name).remove();
 };
-exports.taskList = ({services,nodes})=>{
-	return docker.listTasks({filters: {
-		service:Array.isArray(services)?services:[],
-		node:Array.isArray(nodes)?nodes:[],
-	}});
+exports.taskList = ({services, nodes}) => {
+	return docker.listTasks({
+		filters: {
+			service: Array.isArray(services) ? services : [],
+			node: Array.isArray(nodes) ? nodes : [],
+		}
+	});
 };
-exports.networkCreate =({Name},swarm)=>{
+exports.networkCreate = ({Name}, swarm) => {
 	return docker.createNetwork({
-		Name,CheckDuplicate:true,
-		Driver:swarm?"overlay":"bridge",
-		Internal:false,
-		Attachable:true,
-	})
+		Name, CheckDuplicate: true,
+		Driver: swarm ? 'overlay' : 'bridge',
+		Internal: false,
+		Attachable: true,
+	});
 };
-exports.networkInspect = ({Name})=>{
-	return docker.getNetwork(Name).inspect()
+exports.networkInspect = ({Name}) => {
+	return docker.getNetwork(Name).inspect();
+};
+exports.networkRemove = ({Name}) => {
+	return docker.getNetwork(Name).remove();
 };
