@@ -4,7 +4,7 @@ const docker = new Dockerode();
 const Log4js = require('log4js');
 const logger = Log4js.getLogger('dockerode');
 logger.level = 'debug';
-exports.deleteContainer = containerName => {
+exports.containerDelete = containerName => {
 	logger.debug(`--delete container ${containerName}`);
 	const container = docker.getContainer(containerName);
 	return container.inspect().then((containInfo) => {
@@ -37,11 +37,11 @@ exports.containerExec = ({container_name,Cmd})=>{
 		exec.start().then(() => exec.inspect())
 	);
 };
-exports.containerList = ({all,network,status})=>{
+exports.containerList = ({all,network,status}={})=>{
 	// status=(created 	restarting 	running 	paused 	exited 	dead)
 	const filters = {
-		network:network?[network]:[],
-		status:status?[status]:[]
+		network:network?[network]:undefined,
+		status:status?[status]:undefined
 	};
 	return docker.listContainers({all,filters});
 };
