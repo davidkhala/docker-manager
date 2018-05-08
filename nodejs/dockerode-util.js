@@ -31,19 +31,19 @@ exports.containerStart = (createOptions) => {
 		} else return compositeContainer;
 	});
 };
-exports.containerExec = ({container_name,Cmd})=>{
+exports.containerExec = ({container_name, Cmd}) => {
 	const container = docker.getContainer(container_name);
 	return container.exec({Cmd}).then(exec =>
 		exec.start().then(() => exec.inspect())
 	);
 };
-exports.containerList = ({all,network,status}={})=>{
+exports.containerList = ({all, network, status} = {}) => {
 	// status=(created 	restarting 	running 	paused 	exited 	dead)
 	const filters = {
-		network:network?[network]:undefined,
-		status:status?[status]:undefined
+		network: network ? [network] : undefined,
+		status: status ? [status] : undefined
 	};
-	return docker.listContainers({all,filters});
+	return docker.listContainers({all, filters});
 };
 exports.swarmInit = ({AdvertiseAddr}) => {
 	const opts = {
@@ -225,7 +225,7 @@ exports.imageCreate = (imageName) => {
 	}).catch(err => {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
 			logger.info(`image ${imageName} not exist, pulling`);
-			return module.exports.imagePull(imageName).then(()=> image);
+			return module.exports.imagePull(imageName).then(() => image);
 		} else throw err;
 	});
 };
@@ -266,7 +266,14 @@ exports.volumeCreateIfNotExist = ({Name, path}) => {
 	});
 };
 exports.volumeRemove = ({Name}) => {
-	return docker.getVolume(Name).remove();
+	const volume = docker.getVolume(Name);
+	return volume.inspect().then(()=>volume.remove())
+		.catch(err=>{
+			if(err.toString().includes('no such volume')){
+				return;
+			}
+			throw err;
+		});
 };
 exports.taskList = ({services, nodes}) => {
 	return docker.listTasks({
@@ -288,5 +295,23 @@ exports.networkInspect = ({Name}) => {
 	return docker.getNetwork(Name).inspect();
 };
 exports.networkRemove = ({Name}) => {
-	return docker.getNetwork(Name).remove();
+	const network = docker.getNetwork(Name);
+	return network.inspect().then(() => network.remove())
+		.catch(err => {
+			if (err.toString().includes('no such network')) {
+				return;
+			}
+			throw err;
+		});
+};
+exports.prune = {
+	container: docker.pruneContainers,
+	image: docker.pruneImages,
+	network: docker.pruneNetworks,
+	volume: docker.pruneVolumes,
+	system: async () => {
+		await docker.pruneContainers();
+		await docker.pruneVolumes();
+		await docker.pruneNetworks();
+	}
 };
