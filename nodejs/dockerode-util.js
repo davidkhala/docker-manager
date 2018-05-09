@@ -5,10 +5,9 @@ const Log4js = require('log4js');
 const logger = Log4js.getLogger('dockerode');
 logger.level = 'debug';
 exports.containerDelete = containerName => {
-	logger.debug(`--delete container ${containerName}`);
 	const container = docker.getContainer(containerName);
 	return container.inspect().then((containInfo) => {
-		logger.debug('--before delete', containInfo.State.Status);
+		logger.debug('delete container', containerName, containInfo.State.Status);
 		//possible status:[created|restarting|running|removing|paused|exited|dead]
 		if (['exited', 'created', 'dead'].includes(containInfo.State.Status)) {
 			//remove() return no data in callback
@@ -19,7 +18,7 @@ exports.containerDelete = containerName => {
 	}).catch(err => {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
 			//swallow
-			logger.info(`---- ${containerName} not found. deleting skipped`);
+			logger.info(`${containerName} not found. deleting skipped`);
 			return Promise.resolve();
 		} else throw err;
 	});
@@ -37,13 +36,16 @@ exports.containerExec = ({container_name, Cmd}) => {
 		exec.start().then(() => exec.inspect())
 	);
 };
-exports.containerList = ({all, network, status} = {}) => {
+exports.containerList = ({all, network, status} = {all:true}) => {
 	// status=(created 	restarting 	running 	paused 	exited 	dead)
 	const filters = {
 		network: network ? [network] : undefined,
 		status: status ? [status] : undefined
 	};
 	return docker.listContainers({all, filters});
+};
+exports.imageList = ({all}={})=>{
+	return docker.listImages({all});
 };
 exports.swarmInit = ({AdvertiseAddr}) => {
 	const opts = {
@@ -95,94 +97,80 @@ exports.nodeInspect = (id) => {
 exports.swarmServiceName = (serviceName) => {
 	return serviceName.replace(/\./g, '-');
 };
-exports.serviceExist = ({Name}) => {
-	const serviceName = module.exports.swarmServiceName(Name);
-	return docker.getService(serviceName).inspect().catch(err => {
-		if (err.toString().includes(`service ${serviceName} not found`)) {
-			return false;
-		} else {
-			throw err;
-		}
-	});
-};
-exports.serviceInspect = ({Name}) => {
-	const serviceName = module.exports.swarmServiceName(Name);
-	return docker.getService(serviceName).inspect();
-};
-exports.serviceCreate = ({Image, Name, Cmd, network, Constraints, volumes, ports, Env, Aliases}) => {
-	const serviceName = module.exports.swarmServiceName(Name);
-	if (Name !== serviceName) {
-		if (Array.isArray(Aliases)) {
-			Aliases = Aliases.concat([Name]);
-		} else {
-			Aliases = [Name];
-		}
-	}
-	const opts = {
-		Name: serviceName,
-		TaskTemplate: {
-			ContainerSpec: {
-				Image,
-				Env,
-				Command: Cmd,
-				Mounts: volumes.map(({volumeName, volume, Type = 'volume'}) => {
-					return {
-						'ReadOnly': false,
-						'Source': volumeName,
-						'Target': volume,
-						Type,
-						// "VolumeOptions": {
-						//     "DriverConfig": {
-						//     },
-						// }
-					};
-				})
-			},
-			Networks: [{Target: network, Aliases}],
-			Resources: {
-				Limits: {},
-				Reservations: {}
-			},
-			RestartPolicy: {
-				Condition: 'on-failure',
-				MaxAttempts: 0
-			},
-			Placement: {Constraints}
-		},
-		Mode: {
-			Replicated: {
-				Replicas: 1
-			}
-		},
-		EndpointSpec: {
-			Ports: ports.map(({host, container}) => {
-				return {
-					'Protocol': 'tcp',
-					'PublishedPort': host,
-					'TargetPort': container
-				};
-			})
-		}
-	};
-	const service = docker.getService(Name);
+exports.serviceDelete = serviceName=> {
+	const service = docker.getService(serviceName);
 	return service.inspect().then((info) => {
-		Object.assign(service, info);
-		logger.debug(`service ${Name} exist `, service);
-		return service;
+		logger.debug('service delete', serviceName, info);
+		return service.remove();
 	}).catch(err => {
-		if (err.statusCode === 404) {
-			return docker.createService(opts);
-		} else {
-			throw err;
-		}
+		if (err.statusCode === 404 && err.reason === 'no such service') {
+			//swallow
+			logger.info(`${serviceName} not found. deleting skipped`);
+			return Promise.resolve();
+		} else throw err;
 	});
+};
+exports.serviceCreateIfNotExist = ({Image, Name, Cmd, network, Constraints, volumes=[], ports=[], Env, Aliases}) => {
 
-};
-exports.serviceList = () => {
-	return docker.listServices();
-};
-exports.swarmInspect = () => {
-	return docker.swarmInspect();
+	const service = docker.getService(Name);
+	return service.inspect()
+		.then((info) => {
+			logger.debug(`service ${Name} exist `);
+			return info;
+		}).catch(err => {
+			if (err.statusCode === 404 && err.reason === 'no such service') {
+
+				const opts = {
+					Name,
+					TaskTemplate: {
+						ContainerSpec: {
+							Image,
+							Env,
+							Command: Cmd,
+							Mounts: volumes.map(({volumeName, volume, Type = 'volume'}) => {
+								return {
+									'ReadOnly': false,
+									'Source': volumeName,
+									'Target': volume,
+									Type,
+									// "VolumeOptions": {
+									//     "DriverConfig": {
+									//     },
+									// }
+								};
+							})
+						},
+						Networks: [{Target: network, Aliases}],
+						Resources: {
+							Limits: {},
+							Reservations: {}
+						},
+						RestartPolicy: {
+							Condition: 'on-failure',
+							MaxAttempts: 0
+						},
+						Placement: {Constraints}
+					},
+					Mode: {
+						Replicated: {
+							Replicas: 1
+						}
+					},
+					EndpointSpec: {
+						Ports: ports.map(({host, container}) => {
+							return {
+								'Protocol': 'tcp',
+								'PublishedPort': host,
+								'TargetPort': container
+							};
+						})
+					}
+				};
+				return docker.createService(opts);
+			} else {
+				throw err;
+			}
+		});
 };
 exports.containerCreate = (createOptions) => {
 	const {name: containerName, Image: imageName} = createOptions;
@@ -267,9 +255,9 @@ exports.volumeCreateIfNotExist = ({Name, path}) => {
 };
 exports.volumeRemove = ({Name}) => {
 	const volume = docker.getVolume(Name);
-	return volume.inspect().then(()=>volume.remove())
-		.catch(err=>{
-			if(err.toString().includes('no such volume')){
+	return volume.inspect().then(() => volume.remove())
+		.catch(err => {
+			if (err.reason === 'no such volume') {
 				return;
 			}
 			throw err;
@@ -298,7 +286,7 @@ exports.networkRemove = ({Name}) => {
 	const network = docker.getNetwork(Name);
 	return network.inspect().then(() => network.remove())
 		.catch(err => {
-			if (err.toString().includes('no such network')) {
+			if (err.reason === 'no such network') {
 				return;
 			}
 			throw err;
