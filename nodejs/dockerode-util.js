@@ -36,7 +36,7 @@ exports.containerExec = ({container_name, Cmd}) => {
 		exec.start().then(() => exec.inspect())
 	);
 };
-exports.containerList = ({all, network, status} = {all:true}) => {
+exports.containerList = ({all, network, status} = {all: true}) => {
 	// status=(created 	restarting 	running 	paused 	exited 	dead)
 	const filters = {
 		network: network ? [network] : undefined,
@@ -44,7 +44,7 @@ exports.containerList = ({all, network, status} = {all:true}) => {
 	};
 	return docker.listContainers({all, filters});
 };
-exports.imageList = ({all}={})=>{
+exports.imageList = ({all} = {}) => {
 	return docker.listImages({all});
 };
 exports.swarmInit = ({AdvertiseAddr}) => {
@@ -75,7 +75,7 @@ exports.swarmLeave = () => {
 exports.swarmServiceName = (serviceName) => {
 	return serviceName.replace(/\./g, '-');
 };
-exports.serviceDelete = serviceName=> {
+exports.serviceDelete = serviceName => {
 	const service = docker.getService(serviceName);
 	return service.inspect().then((info) => {
 		logger.debug('service delete', serviceName);
@@ -88,7 +88,7 @@ exports.serviceDelete = serviceName=> {
 		} else throw err;
 	});
 };
-exports.serviceCreateIfNotExist = ({Image, Name, Cmd, network, Constraints, volumes=[], ports=[], Env, Aliases}) => {
+exports.serviceCreateIfNotExist = ({Image, Name, Cmd, network, Constraints, volumes = [], ports = [], Env, Aliases}) => {
 
 	const service = docker.getService(Name);
 	return service.inspect()
@@ -144,7 +144,7 @@ exports.serviceCreateIfNotExist = ({Image, Name, Cmd, network, Constraints, volu
 						})
 					}
 				};
-				return docker.createService(opts);
+				return docker.createService(opts).then(service => service.inspect());
 			} else {
 				throw err;
 			}
@@ -247,6 +247,38 @@ exports.taskList = ({services, nodes}) => {
 			service: Array.isArray(services) ? services : [],
 			node: Array.isArray(nodes) ? nodes : [],
 		}
+	});
+};
+/**
+ * service=<service name>, not ID
+ node=<node id or name>
+ https://docs.docker.com/engine/swarm/how-swarm-mode-works/swarm-task-states/
+ NEW    The task was initialized.
+ PENDING    Resources for the task were allocated.
+ ASSIGNED    Docker assigned the task to nodes.
+ ACCEPTED    The task was accepted by a worker node. If a worker node rejects the task, the state changes to REJECTED.
+ PREPARING    Docker is preparing the task.
+ STARTING    Docker is starting the task.
+ RUNNING    The task is executing.
+ COMPLETE    The task exited without an error code.
+ FAILED    The task exited with an error code.
+ SHUTDOWN    Docker requested the task to shut down.
+ REJECTED    The worker node rejected the task.
+ ORPHANED    The node was down for too long.
+ REMOVE    The task is not terminal but the associated service was removed or scaled down.
+ */
+exports.findTask = async ({service, node, state} = {}) => {
+	const stateEnums = ['NEW', 'PENDING', 'ASSIGNED', 'ACCEPTED', 'PREPARING', 'STARTING', 'RUNNING', 'COMPLETE', 'FAILED', 'SHUTDOWN', 'REJECTED', 'ORPHANED', 'REMOVE'];
+	if (state && !stateEnums.includes(state.toUpperCase())) {
+		logger.warn('invalid state', state);
+		state = undefined;
+	}
+	const result = await exports.taskList({
+		services: service ? [service] : [],
+		nodes: node ? [node] : [],
+	});
+	return result.find(({Status}) => {
+		return state ? Status.State === state : true;
 	});
 };
 exports.networkCreate = ({Name}, swarm) => {
