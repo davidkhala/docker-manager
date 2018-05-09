@@ -7,3 +7,8 @@ exports.systemPrune = async () => {
 	}
 	return stdout;
 };
+exports.nodeInspect = async (id) => {
+	const {stdout, stderr} = await exec(`docker node inspect ${id}`);
+	if(stderr) throw stderr;
+	return JSON.parse(stdout)[0];
+};

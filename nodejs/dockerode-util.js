@@ -71,28 +71,6 @@ exports.swarmJoin = ({AdvertiseAddr, JoinToken}) => {
 exports.swarmLeave = () => {
 	return docker.swarmLeave({'force': true});
 };
-exports.nodeInspect = (id) => {
-	const optsf = {
-		path: `/nodes/${id}`,
-		method: 'GET',
-		options: {},
-		statusCodes: {
-			200: true,
-			404: 'no such node',
-			406: 'node is not part of a swarm',
-			500: 'server error'
-		}
-	};
-	const modem = docker.getNode(id).modem;
-	return new modem.Promise((resolve, reject) => {
-		modem.dial(optsf, (err, data) => {
-			if (err) {
-				return reject(err);
-			}
-			resolve(data);
-		});
-	});
-};
 
 exports.swarmServiceName = (serviceName) => {
 	return serviceName.replace(/\./g, '-');
@@ -100,7 +78,7 @@ exports.swarmServiceName = (serviceName) => {
 exports.serviceDelete = serviceName=> {
 	const service = docker.getService(serviceName);
 	return service.inspect().then((info) => {
-		logger.debug('service delete', serviceName, info);
+		logger.debug('service delete', serviceName);
 		return service.remove();
 	}).catch(err => {
 		if (err.statusCode === 404 && err.reason === 'no such service') {
