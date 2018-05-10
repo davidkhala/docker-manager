@@ -5,24 +5,21 @@ const Log4js = require('log4js');
 const logger = Log4js.getLogger('dockerode');
 logger.level = 'debug';
 const dockerCmd = require('./dockerCmd');
-exports.containerDelete = containerName => {
+exports.containerDelete = async containerName => {
 	const container = docker.getContainer(containerName);
-	return container.inspect().then((containInfo) => {
+	try {
+		const containInfo = await container.inspect();
 		logger.debug('delete container', containerName, containInfo.State.Status);
-		//possible status:[created|restarting|running|removing|paused|exited|dead]
-		if (['exited', 'created', 'dead'].includes(containInfo.State.Status)) {
-			//remove() return no data in callback
-			return container.remove();
-		} else {
-			return container.kill().then(container => container.remove());
+//possible status:[created|restarting|running|removing|paused|exited|dead]
+		if (!['exited', 'created', 'dead'].includes(containInfo.State.Status)) {
+			await container.kill();
 		}
-	}).catch(err => {
-		if (err.reason === 'no such container' && err.statusCode === 404) {
-			//swallow
-			logger.info(err.json.message,'deleting skipped');
-			return Promise.resolve();
+		return await container.remove();
+	} catch (err) {
+		if (err.statusCode === 404 && err.reason === 'no such container') {
+			logger.info(err.json.message, 'deleting skipped');
 		} else throw err;
-	});
+	}
 };
 exports.containerStart = async (createOptions) => {
 	const containerInfo = await exports.containerCreateIfNotExist(createOptions);
@@ -166,7 +163,7 @@ exports.containerCreateIfNotExist = async (createOptions) => {
 	} catch (err) {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
 			logger.info('container not found.', containerName, 'creating');
-			await module.exports.imageCreate(imageName);
+			await module.exports.imageCreateIfNotExist(imageName);
 			const container = await docker.createContainer(createOptions);
 			return await container.inspect();
 		} else throw err;
@@ -185,17 +182,19 @@ exports.imageDelete = async (imageName) => {
 		} else throw err;
 	}
 };
-exports.imageCreate = (imageName) => {
+exports.imageCreateIfNotExist = async (imageName) => {
 	const image = docker.getImage(imageName);
-	return image.inspect().then(imageInfo => {
+	try {
+		const imageInfo = await image.inspect();
 		logger.info('image found', imageInfo.RepoTags);
-		return image;
-	}).catch(err => {
+		return imageInfo;
+	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
-			logger.info(`image ${imageName} not found, pulling`);
-			return module.exports.imagePull(imageName).then(() => image);
+			logger.info(err.json.message, 'pulling');
+			await exports.imagePull(imageName);
+			return await image.inspect();
 		} else throw err;
-	});
+	}
 };
 exports.imagePull = (imageName) => {
 
@@ -313,7 +312,7 @@ exports.networkRemove = async (Name) => {
 		const network = docker.getNetwork(Name);
 		await network.inspect();
 		return await network.remove();
-	}catch (err) {
+	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such network') {
 			logger.info(err.json.message, 'deleting skipped');
 		} else throw err;
