@@ -12,3 +12,14 @@ exports.nodeInspect = async (id) => {
 	if(stderr) throw stderr;
 	return JSON.parse(stdout)[0];
 };
+exports.nodeSelf = async (pretty) => {
+	const info = await exports.nodeInspect('self');
+	if (pretty) {
+		const {
+			ID, Status, ManagerStatus,
+			Description: {Hostname, Platform, Engine: {EngineVersion}},
+		} = info;
+		return {ID, Hostname, Platform, EngineVersion, Status, ManagerStatus};
+	}
+	return info;
+};
