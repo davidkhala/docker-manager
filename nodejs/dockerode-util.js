@@ -84,8 +84,7 @@ exports.serviceDelete = async serviceName => {
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such service') {
 			//swallow
-			logger.info(`${serviceName} not found. deleting skipped`);
-			return;
+			logger.info(err.json.message, 'deleting skipped');
 		} else throw err;
 	}
 };
@@ -99,6 +98,7 @@ exports.serviceCreateIfNotExist = async ({Image, Name, Cmd, network, Constraints
 		return info;
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such service') {
+			logger.info(err.json.message,'creating');
 			const opts = {
 				Name,
 				TaskTemplate: {
@@ -162,7 +162,7 @@ exports.containerCreateIfNotExist = async (createOptions) => {
 		return info;
 	} catch (err) {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
-			logger.info('container not found.', containerName, 'creating');
+			logger.info(err.json.message,  'creating');
 			await module.exports.imageCreateIfNotExist(imageName);
 			const container = await docker.createContainer(createOptions);
 			return await container.inspect();
@@ -178,7 +178,7 @@ exports.imageDelete = async (imageName) => {
 		return await image.remove();
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
-			logger.info(`image ${imageName} not found, skip deleting`);
+			logger.info(err.json.message,'skip deleting');
 		} else throw err;
 	}
 };
@@ -240,7 +240,7 @@ exports.volumeRemove = async (Name) => {
 		return await volume.remove();
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such volume') {
-			logger.info('volume not found', Name);
+			logger.info(err.json.message,'delete skipped');
 		} else throw err;
 	}
 };
