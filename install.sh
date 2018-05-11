@@ -44,36 +44,39 @@ function composeCN() {
 	curl -L https://get.daocloud.io/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >/usr/local/bin/docker-compose
 	chmod +x /usr/local/bin/docker-compose
 }
-function cn(){
-    sudo apt-get install -y curl
+function cn() {
+	sudo apt-get install -y curl
 	dockerCN
-    installjq
-    composeCN
-    dockerHubCN
+	installjq
+	composeCN
+	dockerHubCN
 }
-function installjq(){
-    if ! jq --version | grep $jqVersion;then
-        # install jq for parsing json content
-        sudo apt-get update
-	    sudo apt-get -qq install -y jq=${jqVersion}*
-    fi
+function installjq() {
+	if ! jq --version | grep $jqVersion; then
+		# install jq for parsing json content
+		sudo apt-get update
+		sudo apt-get -qq install -y jq=${jqVersion}*
+	fi
+}
+
+function installCompose() {
+	if ! docker-compose version | grep $composeVersion; then
+		curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >docker-compose
+		chmod +x docker-compose
+		sudo mv docker-compose /usr/local/bin/docker-compose
+	fi
 }
 
 function default() {
-    if ! docker version | grep $dockerVersion;then
-        # install docker-ce
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-        sudo apt-key fingerprint 0EBFCD88
-        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-        sudo apt-get update
-        sudo apt-get -qq install -y --allow-downgrades docker-ce=${dockerVersion}*
-    fi
-    installjq
-    if ! docker-compose version | grep $composeVersion;then
-        curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >docker-compose
-        chmod +x docker-compose
-        sudo mv docker-compose /usr/local/bin/docker-compose
-    fi
+	if ! docker version | grep $dockerVersion; then
+		# install docker-ce
+		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+		sudo apt-key fingerprint 0EBFCD88
+		sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+		sudo apt-get update
+		sudo apt-get -qq install -y --allow-downgrades docker-ce=${dockerVersion}*
+	fi
+	installjq
 }
 
 if [ -n "$fcn" ]; then
