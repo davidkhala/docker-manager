@@ -98,7 +98,7 @@ exports.serviceCreateIfNotExist = async ({Image, Name, Cmd, network, Constraints
 		return info;
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such service') {
-			logger.info(err.json.message,'creating');
+			logger.info(err.json.message, 'creating');
 			const opts = {
 				Name,
 				TaskTemplate: {
@@ -162,7 +162,7 @@ exports.containerCreateIfNotExist = async (createOptions) => {
 		return info;
 	} catch (err) {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
-			logger.info(err.json.message,  'creating');
+			logger.info(err.json.message, 'creating');
 			await module.exports.imageCreateIfNotExist(imageName);
 			const container = await docker.createContainer(createOptions);
 			return await container.inspect();
@@ -178,7 +178,7 @@ exports.imageDelete = async (imageName) => {
 		return await image.remove();
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
-			logger.info(err.json.message,'skip deleting');
+			logger.info(err.json.message, 'skip deleting');
 		} else throw err;
 	}
 };
@@ -240,7 +240,7 @@ exports.volumeRemove = async (Name) => {
 		return await volume.remove();
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such volume') {
-			logger.info(err.json.message,'delete skipped');
+			logger.info(err.json.message, 'delete skipped');
 		} else throw err;
 	}
 };
@@ -297,7 +297,8 @@ exports.networkCreateIfNotExist = async ({Name}, swarm) => {
 	try {
 		const network = docker.getNetwork(Name);
 		const status = await network.inspect();
-		logger.info('network exist', Name, status);
+		const {Scope, Driver, Containers} = status;
+		logger.info('network exist', Name, {Scope, Driver, Containers: Object.values(Containers).map(({Name}) => Name)});
 		return status;
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such network') {
@@ -368,4 +369,41 @@ exports.prune = {
 		await docker.pruneNetworks();
 	}
 };
-exports.getTask = docker.getTask;
+/**
+ * node.id    Node ID    node.id==2ivku8v2gvtg4
+ node.hostname    Node hostname    node.hostname!=node-2
+ node.role    Node role    node.role==manager
+ node.labels    user defined node labels    node.labels.security==high
+ engine.labels    Docker Engine's labels    engine.labels.operatingsystem==ubuntu 14.04
+ * not support '!=' constraints yet
+ * @param ID
+ * @param hostname
+ * @param role
+ * @param labels
+ * @param engineLabels
+ * @constructor
+ */
+exports.constraintsBuilder = ({ID, hostname, role}, labels, engineLabels) => {
+
+	const constraints = [];
+	if (ID) constraints.push(`node.id==${ID}`);
+	if (hostname) constraints.push(`node.hostname==${hostname}`);
+	if (role) constraints.push(`node.role==${role}`);
+	if (labels) {
+		for (const key in labels) {
+			const value = labels[key];
+			constraints.push(`node.labels.${key}==${value}`);
+		}
+	}
+	if (engineLabels) {
+		for (const key in engineLabels) {
+			const value = engineLabels[key];
+			constraints.push(`engine.labels.${key}==${value}`);
+		}
+	}
+	return constraints;
+};
+exports.constraintSelf = async () => {
+	const {ID} = await dockerCmd.nodeSelf(true);
+	return exports.constraintsBuilder({ID});
+};
