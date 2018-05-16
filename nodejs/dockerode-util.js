@@ -1,5 +1,6 @@
 const Dockerode = require('dockerode');
 
+const fs = require('fs');
 const docker = new Dockerode();
 const Log4js = require('log4js');
 const logger = Log4js.getLogger('dockerode');
@@ -87,6 +88,20 @@ exports.serviceDelete = async serviceName => {
 			logger.info(err.json.message, 'deleting skipped');
 		} else throw err;
 	}
+};
+/**
+ * TODO to implement
+ * @param containerName
+ * @param from
+ * @param to
+ * @returns {Promise<*>}
+ */
+exports.getArchive = async (containerName, from, to) => {
+	const container = docker.getContainer(containerName);
+	const info = await container.inspect();
+	const opts = {path: from};
+	const result = await container.getArchive(opts);
+	return result;
 };
 exports.serviceCreateIfNotExist = async ({Image, Name, Cmd, network, Constraints, volumes = [], ports = [], Env, Aliases}) => {
 

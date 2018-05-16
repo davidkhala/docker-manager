@@ -9,7 +9,7 @@ exports.systemPrune = async () => {
 };
 exports.nodeInspect = async (id) => {
 	const {stdout, stderr} = await exec(`docker node inspect ${id}`);
-	if(stderr) throw stderr;
+	if (stderr) throw stderr;
 	return JSON.parse(stdout)[0];
 };
 exports.nodeSelf = async (pretty) => {
@@ -22,4 +22,10 @@ exports.nodeSelf = async (pretty) => {
 		return {ID, Hostname, Platform, EngineVersion, Status, ManagerStatus};
 	}
 	return info;
+};
+exports.copy = async (containerName, from, to, toContainer) => {
+	const cmd = toContainer ? `docker cp ${from} ${containerName}:${to}` : `docker cp ${containerName}:${from} ${to}`;
+	const {stdout, stderr} = await exec(cmd);
+	if (stderr) throw stderr;
+	return stdout;
 };
