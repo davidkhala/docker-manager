@@ -23,13 +23,27 @@ exports.containerDelete = async containerName => {
 	}
 };
 exports.containerStart = async (createOptions) => {
-	const containerInfo = await exports.containerCreateIfNotExist(createOptions);
-	if (['exited', 'created'].includes(containerInfo.State.Status)) {
-		const {name} = createOptions;
-		let container = docker.getContainer(name);
-		container = await container.start();
-		return await container.inspect();
-	} else return containerInfo;
+	const {name: containerName, Image: imageName} = createOptions;
+	const container = docker.getContainer(containerName);
+	const start = async (info)=>{
+		if (['exited', 'created'].includes(info.State.Status)) {
+			await container.start();
+			return await container.inspect();
+		} else return info;
+	};
+	try {
+		const info = await container.inspect();
+		logger.info('container found', containerName, info.State.Status);
+		return await start(info);
+	} catch (err) {
+		if (err.reason === 'no such container' && err.statusCode === 404) {
+			logger.info(err.json.message, 'creating');
+			await exports.imageCreateIfNotExist(imageName);
+			await docker.createContainer(createOptions);
+			const info = await container.inspect();
+			return await start(info);
+		} else throw err;
+	}
 };
 exports.containerExec = async ({container_name, Cmd}) => {
 	const container = docker.getContainer(container_name);
@@ -100,12 +114,9 @@ exports.getArchive = async (containerName, from, to) => {
 	const container = docker.getContainer(containerName);
 	const info = await container.inspect();
 	const opts = {path: from};
-	const result = await container.getArchive(opts);
-	return result;
+	return await container.getArchive(opts);
 };
 exports.serviceCreateIfNotExist = async ({Image, Name, Cmd, network, Constraints, volumes = [], ports = [], Env, Aliases}) => {
-
-
 	try {
 		const service = docker.getService(Name);
 		const info = await service.inspect();
@@ -162,25 +173,6 @@ exports.serviceCreateIfNotExist = async ({Image, Name, Cmd, network, Constraints
 			};
 			const service = await docker.createService(opts);
 			return await service.inspect();
-		} else {
-			throw err;
-		}
-	}
-};
-exports.containerCreateIfNotExist = async (createOptions) => {
-	const {name: containerName, Image: imageName} = createOptions;
-
-	try {
-		const container = docker.getContainer(containerName);
-		const info = await container.inspect();
-		logger.info('container found', containerName, info.State.Status);
-		return info;
-	} catch (err) {
-		if (err.reason === 'no such container' && err.statusCode === 404) {
-			logger.info(err.json.message, 'creating');
-			await module.exports.imageCreateIfNotExist(imageName);
-			const container = await docker.createContainer(createOptions);
-			return await container.inspect();
 		} else throw err;
 	}
 };
@@ -300,27 +292,31 @@ exports.findTask = async ({service, node, state} = {}) => {
 	});
 };
 
-exports.networkCreate = ({Name}, swarm) => {
-	return docker.createNetwork({
+exports.networkCreate = async ({Name}, swarm) => {
+	const network = await docker.createNetwork({
 		Name, CheckDuplicate: true,
 		Driver: swarm ? 'overlay' : 'bridge',
 		Internal: false,
 		Attachable: true,
 	});
+	return await network.inspect();
 };
 exports.networkCreateIfNotExist = async ({Name}, swarm) => {
 	try {
 		const network = docker.getNetwork(Name);
 		const status = await network.inspect();
 		const {Scope, Driver, Containers} = status;
-		logger.info('network exist', Name, {Scope, Driver, Containers:Containers?Object.values(Containers).map(({Name}) => Name):undefined});
-
+		logger.info('network exist', Name, {Scope, Driver, Containers: Containers ? Object.values(Containers).map(({Name}) => Name) : undefined});
+		if ((Scope === 'local' && swarm) || (Scope === 'swarm' && !swarm)) {
+			logger.info(`network exist with unwanted ${Scope} ${swarm}`, 're creating');
+			await network.remove();
+			return await exports.networkCreate({Name}, swarm);
+		}
 		return status;
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such network') {
 			logger.info(err.json.message, 'creating');
-			const network = await exports.networkCreate({Name}, swarm);
-			return await network.inspect();
+			return await exports.networkCreate({Name}, swarm);
 		} else throw err;
 	}
 };
