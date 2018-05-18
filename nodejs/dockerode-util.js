@@ -173,7 +173,7 @@ exports.containerCreateIfNotExist = async (createOptions) => {
 	try {
 		const container = docker.getContainer(containerName);
 		const info = await container.inspect();
-		logger.info('container found', containerName, info.State);
+		logger.info('container found', containerName, info.State.Status);
 		return info;
 	} catch (err) {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
@@ -313,7 +313,8 @@ exports.networkCreateIfNotExist = async ({Name}, swarm) => {
 		const network = docker.getNetwork(Name);
 		const status = await network.inspect();
 		const {Scope, Driver, Containers} = status;
-		logger.info('network exist', Name, {Scope, Driver, Containers: Object.values(Containers).map(({Name}) => Name)});
+		logger.info('network exist', Name, {Scope, Driver, Containers:Containers?Object.values(Containers).map(({Name}) => Name):undefined});
+
 		return status;
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such network') {
