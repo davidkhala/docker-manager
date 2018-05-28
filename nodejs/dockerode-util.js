@@ -25,7 +25,7 @@ exports.containerDelete = async containerName => {
 exports.containerStart = async (createOptions) => {
 	const {name: containerName, Image: imageName} = createOptions;
 	const container = docker.getContainer(containerName);
-	const start = async (info)=>{
+	const start = async (info) => {
 		if (['exited', 'created'].includes(info.State.Status)) {
 			await container.start();
 			return await container.inspect();
@@ -59,6 +59,18 @@ exports.containerList = ({all, network, status} = {all: true}) => {
 	};
 	return docker.listContainers({all, filters});
 };
+exports.inflateContainerName = async (container_name) => {
+	const containers = await exports.containerList();
+	const container = containers.find(each => {
+		const {Names} = each;
+		return Names.find(name => name.includes(container_name));
+	});
+	if (container) {
+		const name = container.Names.find(name => name.includes(container_name));
+		return name.substring(1, name.length);
+	}
+};
+
 exports.imageList = ({all} = {}) => {
 	return docker.listImages({all});
 };
