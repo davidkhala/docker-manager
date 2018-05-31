@@ -318,7 +318,11 @@ exports.networkCreateIfNotExist = async ({Name}, swarm) => {
 		const network = docker.getNetwork(Name);
 		const status = await network.inspect();
 		const {Scope, Driver, Containers} = status;
-		logger.info('network exist', Name, {Scope, Driver, Containers: Containers ? Object.values(Containers).map(({Name}) => Name) : undefined});
+		logger.info('network exist', Name, {
+			Scope,
+			Driver,
+			Containers: Containers ? Object.values(Containers).map(({Name}) => Name) : undefined
+		});
 		if ((Scope === 'local' && swarm) || (Scope === 'swarm' && !swarm)) {
 			logger.info(`network exist with unwanted ${Scope} ${swarm}`, 're creating');
 			await network.remove();
@@ -360,6 +364,11 @@ exports.tasksWaitUntilLive = async (services) => {
 		return taskLooper(service);
 	}));
 };
+/**
+ * @param {string[]} services service names
+ * @param nodes
+ * @returns {Promise<any>}
+ */
 exports.tasksWaitUntilDead = async ({services, nodes} = {}) => {
 	const tasks = await exports.taskList({services, nodes});
 
@@ -383,10 +392,13 @@ exports.prune = {
 	image: docker.pruneImages,
 	network: docker.pruneNetworks,
 	volume: docker.pruneVolumes,
+	services: async () => {
+		const node = await dockerCmd.nodeSelf(true);
+		await exports.tasksWaitUntilDead({nodes: [node.ID]});
+	},
 	system: async (swarm) => {
 		if (swarm) {
-			const node = await dockerCmd.nodeSelf(true);
-			await exports.tasksWaitUntilDead({nodes: [node.ID]});
+			await exports.prune.services();
 		}
 		await docker.pruneContainers();
 		await docker.pruneVolumes();
