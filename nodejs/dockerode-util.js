@@ -11,7 +11,7 @@ exports.containerDelete = async containerName => {
 	try {
 		const containInfo = await container.inspect();
 		logger.debug('delete container', containerName, containInfo.State.Status);
-//possible status:[created|restarting|running|removing|paused|exited|dead]
+		//possible status:[created|restarting|running|removing|paused|exited|dead]
 		if (!['exited', 'created', 'dead'].includes(containInfo.State.Status)) {
 			await container.kill();
 		}
@@ -107,11 +107,26 @@ exports.serviceDelete = async serviceName => {
 		const service = docker.getService(serviceName);
 		await service.inspect();
 		logger.debug('service delete', serviceName);
-		return await service.remove();
+		await service.remove();
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such service') {
 			//swallow
 			logger.info(err.json.message, 'deleting skipped');
+		} else throw err;
+	}
+};
+exports.serviceClear = async serviceName => {
+	try {
+		const tasks = await exports.taskList({services: [serviceName]});
+		await exports.serviceDelete(serviceName);
+		logger.debug('service clear', serviceName, 'tasks', tasks.length);
+		for (const task of tasks) {
+			await exports.taskDeadWaiter(task);
+		}
+	} catch (err) {
+		if (err.statusCode === 404 && err.json.message === `service ${serviceName} not found`) {
+			//swallow
+			logger.info(err.json.message, 'clear skipped');
 		} else throw err;
 	}
 };
@@ -347,46 +362,36 @@ exports.networkRemove = async (Name) => {
 		} else throw err;
 	}
 };
-exports.tasksWaitUntilLive = async (services) => {
 
-	const taskLooper = async (service) => {
-		const task = await exports.findTask({service: service.ID, state: 'running'});
-		if (task) return task;
-		await new Promise(resolve => {
-			setTimeout(() => {
-				logger.warn('task wait until live', `for service `, service.Spec.Name);
-				resolve(taskLooper(service));
-			}, 3000);
-		});
-	};
-
-	return Promise.all(services.map(service => {
-		return taskLooper(service);
-	}));
+exports.taskLiveWaiter = async (service) => {
+	const task = await exports.findTask({service: service.ID, state: 'running'});
+	if (task) return task;
+	await new Promise(resolve => {
+		setTimeout(() => {
+			logger.warn('task wait until live', 'for service ', service.Spec.Name);
+			resolve(exports.taskLiveWaiter(service));
+		}, 3000);
+	});
 };
-/**
- * @param {string[]} services service names
- * @param nodes
- * @returns {Promise<any>}
- */
-exports.tasksWaitUntilDead = async ({services, nodes} = {}) => {
-	const tasks = await exports.taskList({services, nodes});
-
-	logger.debug('tasksWaitUtilDead', tasks.length);
-	for (let i = 0; i < tasks.length; i++) {
-		const {ID} = tasks[i];
-		const task = await docker.getTask(ID).inspect();
-
-		if (task && task.Status.State !== 'failed') {
-			logger.info('task locked', task.ID, task.Spec.ContainerSpec.Image, `at node ${task.NodeID}`);
+exports.taskDeadWaiter = async (task) => {
+	const {ID} = task;
+	try {
+		const taskInfo = await docker.getTask(ID).inspect();
+		if (taskInfo.Status.State !== 'failed') {
+			logger.info('task locked', taskInfo.ID, taskInfo.Spec.ContainerSpec.Image, `at node ${taskInfo.NodeID}`);
 			return new Promise(resolve => {
 				setTimeout(() => {
-					resolve(exports.tasksWaitUntilDead({services, nodes}));
+					resolve(exports.taskDeadWaiter(task));
 				}, 3000);
 			});
 		}
+	} catch (err) {
+		if (err.statusCode === 404 && err.reason === 'unknown task') {
+			logger.info(err.json.message, 'skipped');
+		} else throw err;
 	}
 };
+
 exports.prune = {
 	container: docker.pruneContainers,
 	image: docker.pruneImages,
@@ -394,7 +399,11 @@ exports.prune = {
 	volume: docker.pruneVolumes,
 	services: async () => {
 		const node = await dockerCmd.nodeSelf(true);
-		await exports.tasksWaitUntilDead({nodes: [node.ID]});
+		const tasks = await exports.taskList({nodes:[node.ID]});
+
+		for(const task of tasks){
+			await exports.taskDeadWaiter(task);
+		}
 	},
 	system: async (swarm) => {
 		if (swarm) {
