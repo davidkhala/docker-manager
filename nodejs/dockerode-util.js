@@ -373,21 +373,36 @@ exports.taskLiveWaiter = async (service) => {
 		}, 3000);
 	});
 };
-exports.taskDeadWaiter = async (task) => {
+exports.taskDeadWaiter = async (task, ContainerID) => {
 	const {ID} = task;
 	try {
 		const taskInfo = await docker.getTask(ID).inspect();
+		const {Status: {ContainerStatus: {ContainerID}}} = taskInfo;
 		if (taskInfo.Status.State !== 'failed') {
-			logger.info('task locked', taskInfo.ID, taskInfo.Spec.ContainerSpec.Image, `at node ${taskInfo.NodeID}`);
+			logger.info('task locked', taskInfo.ID, taskInfo.Spec.ContainerSpec.Image, `at node ${taskInfo.NodeID}`, `for container ${ContainerID}`);
 			return new Promise(resolve => {
 				setTimeout(() => {
-					resolve(exports.taskDeadWaiter(task));
+					resolve(exports.taskDeadWaiter(task, ContainerID));
 				}, 3000);
 			});
 		}
+		logger.error(`rare case caught: State ==failed ${taskInfo}`);
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'unknown task') {
 			logger.info(err.json.message, 'skipped');
+			try {
+				await docker.getContainer(ContainerID).inspect();
+				logger.info('container legacy', ContainerID);
+				return new Promise(resolve => {
+					setTimeout(() => {
+						resolve(exports.taskDeadWaiter(task, ContainerID));
+					}, 3000);
+				});
+			} catch (err) {
+				if (err.statusCode === 404 && err.reason === 'no such container') {
+					logger.info(err.json.message, 'cleaned');
+				} else throw err;
+			}
 		} else throw err;
 	}
 };
@@ -399,9 +414,9 @@ exports.prune = {
 	volume: docker.pruneVolumes,
 	services: async () => {
 		const node = await dockerCmd.nodeSelf(true);
-		const tasks = await exports.taskList({nodes:[node.ID]});
+		const tasks = await exports.taskList({nodes: [node.ID]});
 
-		for(const task of tasks){
+		for (const task of tasks) {
 			await exports.taskDeadWaiter(task);
 		}
 	},
