@@ -105,9 +105,10 @@ exports.swarmServiceName = (serviceName) => {
 exports.serviceDelete = async serviceName => {
 	try {
 		const service = docker.getService(serviceName);
-		await service.inspect();
+		const info = await service.inspect();
 		logger.debug('service delete', serviceName);
 		await service.remove();
+		return info;
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such service') {
 			//swallow
@@ -391,6 +392,7 @@ exports.taskDeadWaiter = async (task, ContainerID) => {
 		if (err.statusCode === 404 && err.reason === 'unknown task') {
 			logger.info(err.json.message, 'skipped');
 			try {
+				if(!ContainerID) return;
 				await docker.getContainer(ContainerID).inspect();
 				logger.info('container legacy', ContainerID);
 				return new Promise(resolve => {
