@@ -35,9 +35,12 @@ exports.joinToken = async (role = 'manager') => {
 	if (stderr) throw stderr;
 	return stdout.trim();
 };
-exports.advertiseAddr = async () => {
-	const token = await exports.joinToken();
-	const address = token.split(' ')[5];
+exports.advertiseAddr = async (fullToken) => {
+	if (!fullToken) {
+		fullToken = await exports.joinToken();
+	}
+	const address = fullToken.split(' ')[5];
+	const token = fullToken.split(' ')[4];
 	const addressSlices = address.split(':');
-	return {address: addressSlices[0], port: addressSlices[1]};
+	return {address: addressSlices[0], token, port: addressSlices[1],AdvertiseAddr:address};
 };

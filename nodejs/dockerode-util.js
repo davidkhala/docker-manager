@@ -88,12 +88,50 @@ exports.swarmInit = ({AdvertiseAddr}) => {
 
 	return docker.swarmInit(opts);
 };
-exports.swarmJoin = ({AdvertiseAddr, JoinToken}) => {
+exports.swarmBelongs = async ({ID} = {}, token) => {
+	try {
+		const info = await docker.swarmInspect();
+		if (ID === info.ID) {
+			logger.info('swarm belong: ID matched', ID);
+			return {result: true, swarm: info};
+		}
+		const {JoinTokens} = info;
+		const {Worker, Manager} = JoinTokens;
+		if (Worker === token || Manager === token) return {result: true, swarm: info};
+		return {result: false, swarm: info};
+	} catch (err) {
+		if (err.statusCode === 503 && err.json.message.includes('This node is not a swarm manager')) {
+			logger.warn(err);
+			return {result: false};
+		} else throw err;
+	}
+};
+/**
+ *
+ * @param {string} AdvertiseAddr must be in form of <ip>:2377
+ * @param {string} JoinToken token only
+ * @returns {*}
+ */
+exports.swarmJoin = async ({AdvertiseAddr, JoinToken}) => {
+	logger.debug('swarmJoin',{AdvertiseAddr, JoinToken});
 	const opts = {
-		AdvertiseAddr,
-		JoinToken
+		ListenAddr: '0.0.0.0:2377',
+		JoinToken,
+		RemoteAddrs: [AdvertiseAddr],
 	};
-	return docker.swarmJoin(opts);
+	try {
+		return await docker.swarmJoin(opts);
+	} catch (err) {
+		if (err.json.message.includes('This node is already part of a swarm.')) {
+			//check if it is same swarm
+			const {result, swarm} = await exports.swarmBelongs(undefined, JoinToken);
+			if (!result) {
+				throw `belongs to another swarm ${swarm.ID}`;
+			}
+			logger.info('swarm joined already', swarm.ID);
+		}
+	}
+
 };
 exports.swarmLeave = () => {
 	return docker.swarmLeave({'force': true});
@@ -231,29 +269,29 @@ exports.imageCreateIfNotExist = async (imageName) => {
 		} else throw err;
 	}
 };
-exports.imagePull = (imageName) => {
+exports.imagePull = async (imageName) => {
 
 	//FIXED: fatal bug: if immediately do docker operation after callback:
 	// reason: 'no such container',
 	// 		statusCode: 404,
 	// 		json: { message: 'No such image: hello-world:latest' } }
 	//See discussion in https://github.com/apocas/dockerode/issues/107
-	return docker.pull(imageName).then(stream => {
-		return new Promise((resolve, reject) => {
-			const onProgress = (event) => {
-			};
-			const onFinished = (err, output) => {
-				if (err) {
-					logger.error('pull image error', {err, output});
-					return reject(err);
-				} else {
-					return resolve(output);
-				}
-			};
-			docker.modem.followProgress(stream, onFinished, onProgress);
-		});
-
+	const stream = await docker.pull(imageName);
+	return new Promise((resolve, reject) => {
+		const onProgress = (progress) => {
+			logger.debug('pull', imageName, progress);
+		};
+		const onFinished = (err, output) => {
+			if (err) {
+				logger.error('pull image error', {err, output});
+				return reject(err);
+			} else {
+				return resolve(output);
+			}
+		};
+		docker.modem.followProgress(stream, onFinished, onProgress);
 	});
+
 };
 
 exports.volumeCreateIfNotExist = ({Name, path}) => {
@@ -392,7 +430,7 @@ exports.taskDeadWaiter = async (task, ContainerID) => {
 		if (err.statusCode === 404 && err.reason === 'unknown task') {
 			logger.info(err.json.message, 'skipped');
 			try {
-				if(!ContainerID) return;
+				if (!ContainerID) return;
 				await docker.getContainer(ContainerID).inspect();
 				logger.info('container legacy', ContainerID);
 				return new Promise(resolve => {
