@@ -29,3 +29,15 @@ exports.copy = async (containerName, from, to, toContainer) => {
 	if (stderr) throw stderr;
 	return stdout;
 };
+exports.joinToken = async (role = 'manager') => {
+	const cmd = `docker swarm join-token ${role} | grep docker`;
+	const {stdout, stderr} = await exec(cmd);
+	if (stderr) throw stderr;
+	return stdout.trim();
+};
+exports.advertiseAddr = async () => {
+	const token = await exports.joinToken();
+	const address = token.split(' ')[5];
+	const addressSlices = address.split(':');
+	return {address: addressSlices[0], port: addressSlices[1]};
+};
