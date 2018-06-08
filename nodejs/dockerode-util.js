@@ -102,7 +102,7 @@ exports.swarmInit = async ({AdvertiseAddr}) => {
 		if (err.statusCode === 503 && err.json.message.includes('This node is already part of a swarm.')) {
 			const {address, AdvertiseAddr: existAddr} = await dockerCmd.advertiseAddr();
 			if (address === AdvertiseAddr || existAddr === AdvertiseAddr) {
-				logger.info('swarm with matched AdvertiseAddr', AdvertiseAddr);
+				logger.info('swarmInit: exist swarm with matched AdvertiseAddr', AdvertiseAddr);
 				return await docker.swarmInspect();
 			} else throw err;
 		} else throw err;
