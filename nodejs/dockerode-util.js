@@ -121,7 +121,7 @@ exports.swarmBelongs = async ({ID} = {}, token) => {
 		return {result: false, swarm: info};
 	} catch (err) {
 		if (err.statusCode === 503 && err.json.message.includes('This node is not a swarm manager')) {
-			logger.warn(err);
+			logger.warn('swarm Belongs', err.json.message);
 			return {result: false};
 		} else throw err;
 	}
@@ -142,14 +142,39 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}) => {
 	try {
 		return await docker.swarmJoin(opts);
 	} catch (err) {
-		logger.warn(err);
-		if (err.json.message.includes('This node is already part of a swarm.')) {
-			//check if it is same swarm
-			const {result, swarm} = await exports.swarmBelongs(undefined, JoinToken);
-			if (!result) {
-				throw `belongs to another swarm ${swarm.ID}`;
-			}
-			logger.info('swarm joined already', swarm.ID);
+		if (err.statusCode === 503) {
+			if (err.json.message.includes('This node is already part of a swarm.')) {
+				//check if it is same swarm
+				const {result, swarm} = await exports.swarmBelongs(undefined, JoinToken);
+				if (!result) {
+					throw `belongs to another swarm ${swarm.ID}`;
+				}
+				logger.info('swarm joined already', swarm.ID);
+			} else if (err.json.message.includes('Timeout was reached before node joined')) {
+				logger.warn(err.json.message);
+				let retryCounter = 0;
+				const retryMax = 5;
+				const selfInspectLooper = () => new Promise((resolve, reject) => {
+					setTimeout(async () => {
+						try {
+							resolve(await dockerCmd.nodeSelf());
+						} catch (err) {
+							retryCounter++;
+							logger.warn('retry node self inspect');
+							if (retryCounter < retryMax) {
+								resolve(selfInspectLooper());
+							}else {
+								reject(err);
+							}
+						}
+
+					}, 1000);
+
+				});
+				await selfInspectLooper();
+
+			} else throw err;
+
 		} else throw err;
 	}
 
@@ -160,7 +185,7 @@ exports.swarmLeave = async () => {
 		return await docker.swarmLeave({'force': true});
 	} catch (err) {
 		if (err.statusCode === 503 && err.json.message === 'This node is not part of a swarm') {
-			logger.info(err.json.message, 'swarmLeave skipped');
+			logger.info('swarmLeave skipped:', err.json.message);
 		} else throw err;
 	}
 };
