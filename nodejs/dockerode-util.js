@@ -71,22 +71,42 @@ exports.inflateContainerName = async (container_name) => {
 	}
 };
 
+exports.nodeList = async (pretty) => {
+	let nodes = await docker.listNodes();
+	if (pretty) {
+		nodes = nodes.map(node => {
+			const {
+				ID, Spec, Status, ManagerStatus, Description: {
+					Hostname, Platform, Engine: {EngineVersion},
+				}
+			} = node;
+			return {
+				ID, Spec, Status, ManagerStatus, Hostname, Platform, EngineVersion
+			};
+		});
+	}
+	return nodes;
+};
 exports.imageList = ({all} = {}) => {
 	return docker.listImages({all});
 };
-exports.swarmInit = ({AdvertiseAddr}) => {
+exports.swarmInit = async ({AdvertiseAddr}) => {
 	const opts = {
+		ListenAddr: '0.0.0.0:2377',
 		AdvertiseAddr,
-		'ForceNewCluster': false,
-		'Spec': {
-			'Orchestration': {},
-			'Raft': {},
-			'Dispatcher': {},
-			'CAConfig': {}
-		}
+		ForceNewCluster: false,
 	};
-
-	return docker.swarmInit(opts);
+	try {
+		await docker.swarmInit(opts);
+	} catch (err) {
+		if (err.statusCode === 503 && err.json.message.includes('This node is already part of a swarm.')) {
+			const {address, AdvertiseAddr: existAddr} = await dockerCmd.advertiseAddr();
+			if (address === AdvertiseAddr || existAddr === AdvertiseAddr) {
+				logger.info('swarm with matched AdvertiseAddr', AdvertiseAddr);
+				return await docker.swarmInspect();
+			} else throw err;
+		} else throw err;
+	}
 };
 exports.swarmBelongs = async ({ID} = {}, token) => {
 	try {
