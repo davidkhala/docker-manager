@@ -113,7 +113,7 @@ exports.swarmBelongs = async ({ID} = {}, token) => {
  * @returns {*}
  */
 exports.swarmJoin = async ({AdvertiseAddr, JoinToken}) => {
-	logger.debug('swarmJoin',{AdvertiseAddr, JoinToken});
+	logger.debug('swarmJoin', {AdvertiseAddr, JoinToken});
 	const opts = {
 		ListenAddr: '0.0.0.0:2377',
 		JoinToken,
@@ -122,6 +122,7 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}) => {
 	try {
 		return await docker.swarmJoin(opts);
 	} catch (err) {
+		logger.warn(err);
 		if (err.json.message.includes('This node is already part of a swarm.')) {
 			//check if it is same swarm
 			const {result, swarm} = await exports.swarmBelongs(undefined, JoinToken);
@@ -129,12 +130,19 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}) => {
 				throw `belongs to another swarm ${swarm.ID}`;
 			}
 			logger.info('swarm joined already', swarm.ID);
-		}
+		} else throw err;
 	}
 
 };
-exports.swarmLeave = () => {
-	return docker.swarmLeave({'force': true});
+
+exports.swarmLeave = async () => {
+	try {
+		return await docker.swarmLeave({'force': true});
+	} catch (err) {
+		if (err.statusCode === 503 && err.json.message === 'This node is not part of a swarm') {
+			logger.info(err.json.message, 'swarmLeave skipped');
+		} else throw err;
+	}
 };
 
 exports.swarmServiceName = (serviceName) => {
