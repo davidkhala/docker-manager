@@ -90,6 +90,21 @@ exports.nodeList = async (pretty) => {
 exports.imageList = ({all} = {}) => {
 	return docker.listImages({all});
 };
+exports.swarmTouch = async () => {
+	try {
+		const {ID} = await docker.swarmInspect();
+		return {result: true, ID};
+	} catch (err) {
+		if (err.statusCode === 500) {
+			if (err.reason === 'server error' && err.json.message.includes('The swarm does not have a leader')) {
+				logger.error('swarm consensus corrupted');
+				return {result: false, reason: 'consensus'};
+			}
+		}
+		throw err;
+	}
+
+};
 exports.swarmInit = async ({AdvertiseAddr}) => {
 	const opts = {
 		ListenAddr: '0.0.0.0:2377',
@@ -98,14 +113,17 @@ exports.swarmInit = async ({AdvertiseAddr}) => {
 	};
 	try {
 		await docker.swarmInit(opts);
+		logger.info('swarmInit', {AdvertiseAddr});
 	} catch (err) {
 		if (err.statusCode === 503 && err.json.message.includes('This node is already part of a swarm.')) {
 			const {address, AdvertiseAddr: existAddr} = await dockerCmd.advertiseAddr();
 			if (address === AdvertiseAddr || existAddr === AdvertiseAddr) {
 				logger.info('swarmInit: exist swarm with matched AdvertiseAddr', AdvertiseAddr);
-				return await docker.swarmInspect();
-			} else throw err;
-		} else throw err;
+				return;
+			}
+			//not to handle consensus problem
+		}
+		throw err;
 	}
 };
 exports.swarmBelongs = async ({ID} = {}, token) => {
@@ -163,7 +181,7 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}) => {
 							logger.warn('retry node self inspect');
 							if (retryCounter < retryMax) {
 								resolve(selfInspectLooper());
-							}else {
+							} else {
 								reject(err);
 							}
 						}
@@ -182,7 +200,7 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}) => {
 
 exports.swarmLeave = async () => {
 	try {
-		return await docker.swarmLeave({'force': true});
+		return await docker.swarmLeave({force: true});
 	} catch (err) {
 		if (err.statusCode === 503 && err.json.message === 'This node is not part of a swarm') {
 			logger.info('swarmLeave skipped:', err.json.message);
