@@ -100,6 +100,12 @@ exports.swarmTouch = async () => {
 				return {result: false, reason: 'consensus'};
 			}
 		}
+		if (err.statusCode === 503) {
+			if (err.json.message.includes('This node is not a swarm manager.')) {
+				logger.error('swarm not exist');
+				return {result: false, reason: 'noexist'};
+			}
+		}
 		throw err;
 	}
 
@@ -149,7 +155,7 @@ exports.swarmBelongs = async ({ID} = {}, token) => {
  * @param {string} JoinToken token only
  * @returns {*}
  */
-exports.swarmJoin = async ({AdvertiseAddr, JoinToken},selfIp) => {
+exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
 	logger.debug('swarmJoin', {AdvertiseAddr, JoinToken});
 	const opts = {
 		ListenAddr: `${selfIp}:2377`,
