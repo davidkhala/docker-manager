@@ -1,6 +1,5 @@
 const Dockerode = require('dockerode');
 
-const fs = require('fs');
 const docker = new Dockerode();
 const Log4js = require('log4js');
 const logger = Log4js.getLogger('dockerode');
@@ -150,10 +149,10 @@ exports.swarmBelongs = async ({ID} = {}, token) => {
  * @param {string} JoinToken token only
  * @returns {*}
  */
-exports.swarmJoin = async ({AdvertiseAddr, JoinToken}) => {
+exports.swarmJoin = async ({AdvertiseAddr, JoinToken},selfIp) => {
 	logger.debug('swarmJoin', {AdvertiseAddr, JoinToken});
 	const opts = {
-		ListenAddr: '0.0.0.0:2377',
+		ListenAddr: `${selfIp}:2377`,
 		JoinToken,
 		RemoteAddrs: [AdvertiseAddr],
 	};
@@ -168,8 +167,10 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}) => {
 					throw `belongs to another swarm ${swarm.ID}`;
 				}
 				logger.info('swarm joined already', swarm.ID);
+				return swarm;
 			} else if (err.json.message.includes('Timeout was reached before node joined')) {
 				logger.warn(err.json.message);
+				//TODO to test when will happened
 				let retryCounter = 0;
 				const retryMax = 5;
 				const selfInspectLooper = () => new Promise((resolve, reject) => {
@@ -189,11 +190,10 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}) => {
 					}, 1000);
 
 				});
-				await selfInspectLooper();
-
-			} else throw err;
-
-		} else throw err;
+				return await selfInspectLooper();
+			}
+		}
+		throw err;
 	}
 
 };
@@ -240,19 +240,7 @@ exports.serviceClear = async serviceName => {
 		} else throw err;
 	}
 };
-/**
- * TODO to implement
- * @param containerName
- * @param from
- * @param to
- * @returns {Promise<*>}
- */
-exports.getArchive = async (containerName, from, to) => {
-	const container = docker.getContainer(containerName);
-	const info = await container.inspect();
-	const opts = {path: from};
-	return await container.getArchive(opts);
-};
+
 exports.serviceCreateIfNotExist = async ({Image, Name, Cmd, network, Constraints, volumes = [], ports = [], Env, Aliases}) => {
 	try {
 		const service = docker.getService(Name);
