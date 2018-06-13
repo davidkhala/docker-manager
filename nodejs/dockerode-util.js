@@ -472,7 +472,7 @@ exports.taskLiveWaiter = async (service) => {
 	if (task) return task;
 	await new Promise(resolve => {
 		setTimeout(() => {
-			logger.warn('task wait until live', 'for service ', service.Spec.Name);
+			logger.warn('task wait until live', 'for service', service.Spec.Name);
 			resolve(exports.taskLiveWaiter(service));
 		}, 3000);
 	});
