@@ -484,6 +484,7 @@ exports.taskDeadWaiter = async (task) => {
 		const {Status: {ContainerStatus: {ContainerID}}} = taskInfo;
 		if (taskInfo.Status.State === 'failed') {
 			logger.error('rare case caught: State === failed', taskInfo);
+			return;
 		}
 		logger.info('task locked', taskInfo.ID, taskInfo.Spec.ContainerSpec.Image, `at node ${taskInfo.NodeID}`, `for container ${ContainerID}`);
 		if (ContainerID) {
