@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e -x
+set -e
 fcn=$1
 remain_params=""
 for ((i = 2; i <= ${#}; i++)); do
@@ -7,7 +7,7 @@ for ((i = 2; i <= ${#}; i++)); do
 	remain_params="$remain_params $j"
 done
 
-dockerVersion=17.12.1
+dockerVersion=17.12
 composeVersion=1.14.0
 jqVersion=1.5
 while getopts "d:c:j:" shortname $remain_params; do
@@ -53,6 +53,10 @@ function cn() {
 }
 function installjq() {
 	if ! jq --version | grep $jqVersion; then
+	    if [ $(uname)=="Darwin" ];then
+	        brew install jq
+	        return
+	    fi
 		# install jq for parsing json content
 		sudo apt-get update
 		sudo apt-get -qq install -y jq=${jqVersion}*
