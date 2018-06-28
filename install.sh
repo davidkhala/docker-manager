@@ -31,26 +31,6 @@ while getopts "d:c:j:" shortname $remain_params; do
 	esac
 done
 
-function dockerCN() {
-	curl -sSL https://get.daocloud.io/docker | sh
-}
-
-function dockerHubCN() {
-	curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://105839be.m.daocloud.io
-	systemctl restart docker.service # use sudo if needed
-}
-
-function composeCN() {
-	curl -L https://get.daocloud.io/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >/usr/local/bin/docker-compose
-	chmod +x /usr/local/bin/docker-compose
-}
-function cn() {
-	sudo apt-get install -y curl
-	dockerCN
-	installjq
-	composeCN
-	dockerHubCN
-}
 function installjq() {
 	if ! jq --version | grep $jqVersion; then
 	    if [ $(uname)=="Darwin" ];then

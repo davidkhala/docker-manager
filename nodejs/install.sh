@@ -2,9 +2,6 @@
 CURRENT=$(cd $(dirname ${BASH_SOURCE}); pwd)
 set -e
 fcn="$1"
-function cn() {
-	npm config set registry https://registry.npm.taobao.org/
-}
 if [ -n "$fcn" ]; then
 	$fcn
 fi
