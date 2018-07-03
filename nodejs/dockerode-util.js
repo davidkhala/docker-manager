@@ -212,7 +212,9 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
 
 exports.swarmLeave = async () => {
 	try {
-		return await docker.swarmLeave({force: true});
+		await docker.swarmLeave({force: true});
+		logger.info('swarm leave finished');
+		return;
 	} catch (err) {
 		if (err.statusCode === 503 && err.json.message === 'This node is not part of a swarm') {
 			logger.info('swarmLeave skipped:', err.json.message);
