@@ -153,6 +153,7 @@ exports.swarmBelongs = async ({ID} = {}, token) => {
  *
  * @param {string} AdvertiseAddr must be in form of <ip>:2377
  * @param {string} JoinToken token only
+ * @param {string} selfIp
  * @returns {*}
  */
 exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
