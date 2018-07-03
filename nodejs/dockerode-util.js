@@ -1,9 +1,18 @@
 const Dockerode = require('dockerode');
 
 const docker = new Dockerode();
-const Log4js = require('log4js');
-const logger = Log4js.getLogger('dockerode');
-logger.level = 'debug';
+const winston = require('winston');
+
+const logger = new (winston.Logger)({
+	transports: [
+		new (winston.transports.Console)({
+			level: 'debug',
+			colorize: true,
+			label: 'dockerode'
+		})
+	]
+});
+
 const dockerCmd = require('./dockerCmd');
 exports.containerDelete = async containerName => {
 	const container = docker.getContainer(containerName);
