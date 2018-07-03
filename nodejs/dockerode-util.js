@@ -185,13 +185,14 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
 				//TODO to test when will happened
 				let retryCounter = 0;
 				const retryMax = 5;
+				const timeInterval = 1000;
 				const selfInspectLooper = () => new Promise((resolve, reject) => {
 					setTimeout(async () => {
 						try {
 							resolve(await dockerCmd.nodeSelf());
 						} catch (err) {
 							retryCounter++;
-							logger.warn('retry node self inspect');
+							logger.warn(`retry node self inspect after ${timeInterval}ms `);
 							if (retryCounter < retryMax) {
 								resolve(selfInspectLooper());
 							} else {
@@ -199,7 +200,7 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
 							}
 						}
 
-					}, 1000);
+					}, timeInterval);
 
 				});
 				return await selfInspectLooper();
