@@ -7,6 +7,15 @@ exports.systemPrune = async () => {
 	}
 	return stdout;
 };
+exports.systemInfo = async () => {
+	const {stdout, stderr} = await exec('docker info --format \'{{json .}}\'');
+	if (stderr) throw stderr;
+	return stdout;
+};
+exports.swarmWorkerInfo = async () => {
+	const {Swarm} = JSON.parse(await exports.systemInfo());
+	return Swarm;
+};
 exports.nodeInspect = async (id) => {
 	const {stdout, stderr} = await exec(`docker node inspect ${id}`);
 	if (stderr) throw stderr;
@@ -42,5 +51,5 @@ exports.advertiseAddr = async (fullToken) => {
 	const address = fullToken.split(' ')[5];
 	const token = fullToken.split(' ')[4];
 	const addressSlices = address.split(':');
-	return {address: addressSlices[0], token, port: addressSlices[1],AdvertiseAddr:address};
+	return {address: addressSlices[0], token, port: addressSlices[1], AdvertiseAddr: address};
 };

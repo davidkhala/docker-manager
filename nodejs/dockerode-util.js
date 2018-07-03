@@ -171,7 +171,12 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
 				//check if it is same swarm
 				const {result, swarm} = await exports.swarmBelongs(undefined, JoinToken);
 				if (!result) {
-					throw `belongs to another swarm ${swarm.ID}`;
+					if (swarm) {
+						throw `belongs to another swarm ${swarm.ID}`;
+					} else {
+						logger.info('swarm joined already', 'as worker');
+						return dockerCmd.swarmWorkerInfo();
+					}
 				}
 				logger.info('swarm joined already', swarm.ID);
 				return swarm;
