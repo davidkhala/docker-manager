@@ -518,11 +518,25 @@ exports.taskDeadWaiter = async (task) => {
 	}
 };
 
+exports.nodeDelete = async (id) => {
+	const node = await docker.getNode(id);
+	await node.remove();
+	logger.info(`node ${id} deleted`);
+};
 exports.prune = {
-	container: docker.pruneContainers,
-	image: docker.pruneImages,
-	network: docker.pruneNetworks,
-	volume: docker.pruneVolumes,
+	containers: docker.pruneContainers,
+	images: docker.pruneImages,
+	networks: docker.pruneNetworks,
+	volumes: docker.pruneVolumes,
+	nodes: async () => {
+		const nodes = await exports.nodeList(true);
+		for (const node of nodes) {
+			const {ID, Status: {State}} = node;
+			if (State === 'down') {
+				await exports.nodeDelete(ID);
+			}
+		}
+	},
 	services: async () => {
 		const node = await dockerCmd.nodeSelf(true);
 		const tasks = await exports.taskList({nodes: [node.ID]});
@@ -534,6 +548,7 @@ exports.prune = {
 	system: async (swarm) => {
 		if (swarm) {
 			await exports.prune.services();
+			await exports.prune.nodes();
 		}
 		await docker.pruneContainers();
 		await docker.pruneVolumes();
