@@ -33,10 +33,10 @@ done
 
 function installjq() {
 	if ! jq --version | grep $jqVersion; then
-	    if [ $(uname)=="Darwin" ];then
-	        brew install jq
-	        return
-	    fi
+		if [ $(uname)=="Darwin" ]; then
+			brew install jq
+			return
+		fi
 		# install jq for parsing json content
 		sudo apt-get update
 		sudo apt-get -qq install -y jq=${jqVersion}*
@@ -48,6 +48,17 @@ function installCompose() {
 		curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >docker-compose
 		chmod +x docker-compose
 		sudo mv docker-compose /usr/local/bin/docker-compose
+	fi
+}
+
+function shipyard() {
+	local action=$1
+	if [ $action == "install" ]; then
+		curl -sSL https://shipyard-project.com/deploy | sudo bash -s
+	elif [ $action == "uninstall" ]; then
+		curl -sSL https://shipyard-project.com/deploy | ACTION=remove sudo -E bash -s cause -E preserves environmental vaiables set
+	elif [ $action == "refresh" ]; then
+		curl -sSL https://shipyard-project.com/deploy | ACTION=upgrade sudo bash -s
 	fi
 }
 
@@ -64,7 +75,7 @@ function default() {
 }
 
 if [ -n "$fcn" ]; then
-	$fcn
+	$fcn $remain_params
 else
 	default
 fi
