@@ -33,7 +33,7 @@ done
 
 function installjq() {
 	if ! jq --version | grep $jqVersion; then
-		if [ $(uname)=="Darwin" ]; then
+		if [ $(uname) == "Darwin" ]; then
 			brew install jq
 			return
 		fi
