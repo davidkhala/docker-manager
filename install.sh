@@ -61,9 +61,15 @@ function shipyard() {
 		curl -sSL https://shipyard-project.com/deploy | ACTION=upgrade sudo bash -s
 	fi
 }
-
-function default() {
+function installCurl() {
+	sudo apt-get install -y curl
+}
+function installDocker() {
 	if ! docker version | grep $dockerVersion; then
+		if ! curl verion; then
+			installCurl
+		fi
+		sudo apt-get install -y apt-transport-https
 		# install docker-ce
 		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 		sudo apt-key fingerprint 0EBFCD88
@@ -71,11 +77,11 @@ function default() {
 		sudo apt-get update
 		sudo apt-get -qq install -y --allow-downgrades docker-ce=${dockerVersion}*
 	fi
-	installjq
 }
 
 if [ -n "$fcn" ]; then
 	$fcn $remain_params
 else
-	default
+	installDocker
+	installjq
 fi
