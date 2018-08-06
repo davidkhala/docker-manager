@@ -8,7 +8,7 @@ for ((i = 2; i <= ${#}; i++)); do
 done
 
 dockerVersion=17.12
-composeVersion=1.14.0
+composeVersion=1.22.0
 jqVersion=1.5
 while getopts "d:c:j:" shortname $remain_params; do
 	case $shortname in
@@ -45,9 +45,8 @@ function installjq() {
 
 function installCompose() {
 	if ! docker-compose version | grep $composeVersion; then
-		curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) >docker-compose
-		chmod +x docker-compose
-		sudo mv docker-compose /usr/local/bin/docker-compose
+		sudo curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+		sudo chmod +x /usr/local/bin/docker-compose
 	fi
 }
 
