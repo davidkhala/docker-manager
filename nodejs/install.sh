@@ -10,3 +10,4 @@ if ! node --version | grep 'v8.'; then
 	curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 	sudo apt-get -qq install -y nodejs
 fi
+npm config set package-lock false
