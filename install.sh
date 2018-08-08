@@ -65,7 +65,7 @@ function installCurl() {
 }
 function installDocker() {
 	if ! docker version | grep $dockerVersion; then
-		if ! curl verion; then
+		if ! curl version; then
 			installCurl
 		fi
 		sudo apt-get install -y apt-transport-https
