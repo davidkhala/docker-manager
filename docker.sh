@@ -6,14 +6,6 @@ for ((i = 2; i <= $#; i++)); do
 	j=${!i}
 	remain_params="$remain_params $j"
 done
-function pullIfNotExist() {
-	if [ -z $(docker images -q $1) ]; then
-		echo $1 does not exist, start docker pull...
-		docker pull $1
-    else
-        echo $1 did exist, skip.
-	fi
-}
 function viewContainerPort() {
 	CMD="docker container port $1 $2"
 	if [ -n "$2" ]; then
