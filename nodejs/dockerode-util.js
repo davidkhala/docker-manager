@@ -8,7 +8,8 @@ const logger = new (winston.Logger)({
 		new (winston.transports.Console)({
 			level: 'debug',
 			colorize: true,
-			label: 'dockerode'
+			label: 'dockerode',
+			timestamp:true
 		})
 	]
 });
