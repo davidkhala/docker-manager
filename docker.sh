@@ -19,5 +19,8 @@ function viewContainerPort() {
 	fi
 	$CMD
 }
-
+function imageTrim(){
+#    WARNING! This will remove all images without at least one container associated to them.
+    docker image prune -a
+}
 $fcn $remain_params
