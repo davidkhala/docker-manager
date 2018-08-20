@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 set -e
+CURRENT=$(
+	cd $(dirname ${BASH_SOURCE})
+	pwd
+)
 fcn=$1
 remain_params=""
 for ((i = 2; i <= ${#}; i++)); do
@@ -45,7 +49,7 @@ function installjq() {
 
 function installCompose() {
 	if ! docker-compose version | grep $composeVersion; then
-		sudo curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+		sudo curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
 		sudo chmod +x /usr/local/bin/docker-compose
 	fi
 }
@@ -77,7 +81,12 @@ function installDocker() {
 		sudo apt-get -qq install -y --allow-downgrades docker-ce=${dockerVersion}*
 	fi
 }
-
+function dockerGOSDK() {
+    date
+    echo "estimated time: 3 minutes"
+	go get -u -v github.com/docker/docker/client
+	date
+}
 if [ -n "$fcn" ]; then
 	$fcn $remain_params
 else
