@@ -83,9 +83,13 @@ function installDocker() {
 }
 function dockerGOSDK() {
     date
-    echo "estimated time: 3 minutes"
+    echo "estimated time: 10 minutes"
 	go get -u -v github.com/docker/docker/client
 	date
+	GOPATH=$(go env GOPATH)
+	cd $GOPATH/src/github.com/docker/docker
+    git checkout 17.05.x
+	cd -
 }
 if [ -n "$fcn" ]; then
 	$fcn $remain_params
