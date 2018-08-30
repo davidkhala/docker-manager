@@ -25,3 +25,7 @@ func TestDocker_ImagePrune(t *testing.T) {
 	result := GetClient().ImagePrune()
 	t.Log(result)
 }
+
+func TestDocker_ImagePull(t *testing.T) {
+	GetClient().ImagePull("ubuntu:latest",false)
+}

@@ -1,3 +1,0 @@
-[submodule "golang/golang"]
-	path = golang/golang
-	url = https://github.com/davidkhala/fabric-common-chaincode-golang
