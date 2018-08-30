@@ -4,6 +4,9 @@ import (
 	"testing"
 )
 
+const (
+	containerName = "abc"
+)
 func TestDocker_ContainerList(t *testing.T) {
 	containers := GetClient().ContainerList()
 	for _, container := range containers {
@@ -27,5 +30,26 @@ func TestDocker_ImagePrune(t *testing.T) {
 }
 
 func TestDocker_ImagePull(t *testing.T) {
-	GetClient().ImagePull("ubuntu:latest",false)
+	GetClient().ImagePull("ubuntu:latest", false)
+}
+func TestDocker_ContainerCreate(t *testing.T) {
+	var name = "abc"
+	//var config = ContainerConfig{
+	//	name,
+	//	"ubuntu:latest",
+	//	[]string{},
+	//	[]string{"date"},
+	//	map[string]string{},
+	//	map[int]int{},
+	//	"",
+	//	nil,
+	//}
+	GetClient().ContainerRemove(name)
+	//var id = GetClient().ContainerCreate(config)
+	//GetClient().ContainerStart(id)
+}
+
+func TestDocker_ContainerDeleteIfExist(t *testing.T) {
+	var containerName = "abc"
+	GetClient().ContainerDeleteIfExist(containerName)
 }

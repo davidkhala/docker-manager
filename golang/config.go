@@ -4,80 +4,57 @@ import (
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/api/types/network"
 	"strconv"
-	. "github.com/davidkhala/goutils"
+	. "github.com/docker/go-connections/nat"
 )
 
-// this is a mimic of nat.portSet
-type portSet map[string]struct{}
-
-// this is a mimic of container.Config
-type containerConfig struct {
-	container.Config
-	ExposedPorts portSet
+type ContainerConfig struct {
+	Name        string
+	Image       string
+	Env         []string
+	Cmd         []string
+	Volumes     map[string]string
+	PortMap     map[int]int
+	NetworkName string
+	Alias       []string
 }
 
-func BuildContainerConfig(image string, Env []string, Cmd []string, volumes map[string]string, portMap map[int]int) (config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig) {
-
-	var portSet = portSet{}
-	for k := range portMap {
-		portSet[strconv.Itoa(k)] = struct{}{}
+func (t ContainerConfig) Build() (config container.Config, hostConfig container.HostConfig, networkingConfig network.NetworkingConfig) {
+	var portSet = PortSet{}
+	var PortBindings = PortMap{}
+	for k, v := range t.PortMap {
+		var port = Port(strconv.Itoa(k)) //TODO is this OK
+		portSet[port] = struct{}{}
+		PortBindings[port] = []PortBinding{{HostPort: strconv.Itoa(v)}}
 	}
 	var Volumes = map[string]struct{}{}
 	var Binds []string
-	for k, v := range volumes {
+	for k, v := range t.Volumes {
 		Volumes[v] = struct{}{}
 		Binds = append(Binds, k+":"+v)
 	}
 
-	var mimicConfig = containerConfig{
-		container.Config{
-			Image:   image,
-			Env:     Env,
-			Cmd:     Cmd,
-			Volumes: Volumes,
-		},
-		portSet,
+	config = container.Config{
+		Image:        t.Image,
+		Env:          t.Env,
+		Cmd:          t.Cmd,
+		Volumes:      Volumes,
+		ExposedPorts: portSet,
 	}
-	var jsonTemp = ToJson(mimicConfig)
-	FromJson(jsonTemp, &config)
-	hostConfig = &container.HostConfig{
-		Binds:Binds,
-		PortBindings:
-	}
-}
 
-//
-//name: container_name,
-//Env,
-//Volumes: {
-//[peerUtil.container.MSPROOT]: {},
-//[ordererUtil.container.CONFIGTX]: {},
-//[ordererUtil.container.state]: {}
-//},
-//Cmd,
-//Image,
-//ExposedPorts: {
-//'7050': {},
-//},
-//Hostconfig: {
-//Binds: [
-//`MSPROOT:${peerUtil.container.MSPROOT}`,
-//`CONFIGTX:${ordererUtil.container.CONFIGTX}`,
-//`ledger:${ordererUtil.container.state}`
-//],
-//PortBindings: {
-//'7050': [
-//{
-//HostPort: '9050'
-//						}
-//]
-//},
-//},
-//NetworkingConfig: {
-//EndpointsConfig: {
-//[network]: {
-//Aliases: [container_name]
-//}
-//}
-//}
-//config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, containerName string
+	hostConfig = container.HostConfig{
+		Binds:        Binds,
+		PortBindings: PortBindings,
+	}
+	if t.NetworkName != "" {
+		if t.Alias == nil {
+			t.Alias = []string{t.Name}
+		}
+		var EndpointsConfig = map[string]*network.EndpointSettings{
+			t.NetworkName: {Aliases: t.Alias},
+		}
+		networkingConfig = network.NetworkingConfig{
+			EndpointsConfig: EndpointsConfig,
+		}
+	}
+	return
+}

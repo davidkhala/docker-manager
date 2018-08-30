@@ -7,10 +7,9 @@ import (
 	. "github.com/davidkhala/goutils"
 	"github.com/docker/docker/api/types/filters"
 	"fmt"
-	"strings"
 	"io"
 	"os"
-	)
+)
 
 type Docker struct {
 	client  *client.Client
@@ -33,22 +32,7 @@ func (docker Docker) ImageList() []types.ImageSummary {
 	PanicError(err)
 	return imageSummary
 }
-func (docker Docker) ImageExist(imageID string) (exist bool) {
-	defer func() {
-		if err := recover(); err != nil {
-			var errString = err.(error).Error()
-			if strings.Contains(errString, "No such image: ") {
-				fmt.Println(errString)
-				exist = false
-			} else {
-				panic(err)
-			}
-		}
-	}()
-	docker.ImageInspect(imageID)
-	exist = true
-	return
-}
+
 func (docker Docker) ImageInspect(imageID string) (types.ImageInspect) {
 	info, _, err := docker.client.ImageInspectWithRaw(docker.context, imageID) //ignore the raw, which is replica of info
 	PanicError(err)
@@ -76,13 +60,22 @@ func (docker Docker) ImagePull(imageName string, force bool) {
 	io.Copy(os.Stdout, reader)
 }
 
-func (docker Docker) ContainerCreate(config *ContainerConfig) string {
-	var idResponse types.IDResponse
-	idResponse, err := docker.client.ContainerCreate(docker.context, config, config)
-	//config *container.Config, hostConfig *container.HostConfig, networkingConfig *network.NetworkingConfig, containerName string
+func (docker Docker) ContainerCreate(config ContainerConfig) string {
+	mainConfig, hostConfig, networkingConfig := config.Build()
+	idResponse, err := docker.client.ContainerCreate(docker.context, &mainConfig, &hostConfig, &networkingConfig, config.Name)
 	PanicError(err)
 	return idResponse.ID
 }
+func (docker Docker) ContainerRemove(container string) {
+	err := docker.client.ContainerRemove(docker.context, container, types.ContainerRemoveOptions{Force: true})
+	PanicError(err)
+}
+
+func (docker Docker) ContainerStart(containerID string) {
+	err := docker.client.ContainerStart(docker.context, containerID, types.ContainerStartOptions{})
+	PanicError(err)
+}
+
 //resp, err := cli.ContainerCreate(ctx, &container.Config{
 //Image: "alpine",
 //Cmd:   []string{"echo", "hello world"},
