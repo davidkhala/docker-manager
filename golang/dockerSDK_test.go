@@ -33,23 +33,19 @@ func TestDocker_ImagePull(t *testing.T) {
 	GetClient().ImagePull("ubuntu:latest", false)
 }
 func TestDocker_ContainerCreate(t *testing.T) {
-	var name = "abc"
-	//var config = ContainerConfig{
-	//	name,
-	//	"ubuntu:latest",
-	//	[]string{},
-	//	[]string{"date"},
-	//	map[string]string{},
-	//	map[int]int{},
-	//	"",
-	//	nil,
-	//}
-	GetClient().ContainerRemove(name)
-	//var id = GetClient().ContainerCreate(config)
-	//GetClient().ContainerStart(id)
+	var config = ContainerConfig{
+		containerName,
+		"ubuntu:latest",
+		[]string{},
+		[]string{"date"},
+		map[string]string{},
+		map[int]int{},
+		"",
+		nil,
+	}
+	GetClient().ContainerStartExt(config,true)
 }
 
 func TestDocker_ContainerDeleteIfExist(t *testing.T) {
-	var containerName = "abc"
-	GetClient().ContainerDeleteIfExist(containerName)
+	GetClient().ContainerRemoveIfExist(containerName)
 }

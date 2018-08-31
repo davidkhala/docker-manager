@@ -11,11 +11,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:a32f2bb9641a587d35bed40bc021087affcf0407e186d8d12b6436a052c85b57"
+  digest = "1:8dd81372ce6ab24ace01755700e2835fdb9bf0604c3922e7feefd4ec970d14ca"
   name = "github.com/davidkhala/goutils"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ab6fe6d31703f3ac61d643b63a50476901da0dab"
+  revision = "a71ec2b28f3a4ea541290fd7e3c06345d7297a85"
 
 [[projects]]
   digest = "1:3cabbabc9e0e4aa7e12b882bdc213f41cf8bd2b2ce2a7b5e0aceaf8a6a78049b"
@@ -100,7 +100,7 @@
   name = "golang.org/x/sys"
   packages = ["windows"]
   pruneopts = "UT"
-  revision = "d99a578cf41bfccdeaf48b0845c823a4b8b0ad5e"
+  revision = "49385e6e15226593f68b26af201feec29d5bba22"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -112,6 +112,7 @@
     "github.com/docker/docker/api/types/filters",
     "github.com/docker/docker/api/types/network",
     "github.com/docker/docker/client",
+    "github.com/docker/go-connections/nat",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
