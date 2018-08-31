@@ -75,37 +75,3 @@ func (docker Docker) ContainerStart(containerID string) {
 	err := docker.client.ContainerStart(docker.context, containerID, types.ContainerStartOptions{})
 	PanicError(err)
 }
-
-//resp, err := cli.ContainerCreate(ctx, &container.Config{
-//Image: "alpine",
-//Cmd:   []string{"echo", "hello world"},
-//Tty:   true,
-//}, nil, nil, "")
-//if err != nil {
-//panic(err)
-//}
-//
-//if err := cli.ContainerStart(ctx, resp.ID, types.ContainerStartOptions{}); err != nil {
-//panic(err)
-//}
-//
-//statusCh, errCh := cli.ContainerWait(ctx, resp.ID, container.WaitConditionNotRunning)
-//select {
-//case err := <-errCh:
-//if err != nil {
-//panic(err)
-//}
-//case <-statusCh:
-//}
-//
-//out, err := cli.ContainerLogs(ctx, resp.ID, types.ContainerLogsOptions{ShowStdout: true})
-//if err != nil {
-//panic(err)
-//}
-//
-//io.Copy(os.Stdout, out)
-func (docker Docker) ContainerDelete(containerID string) {
-	options := types.ContainerRemoveOptions{false, false, true}
-	err := docker.client.ContainerRemove(docker.context, containerID, options)
-	PanicError(err)
-}
