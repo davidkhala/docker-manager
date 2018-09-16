@@ -49,6 +49,11 @@ function installjq() {
 
 function installCompose() {
 	if ! docker-compose version | grep $composeVersion; then
+		if [ $(uname) == "Darwin" ]; then
+			echo There is no recommended way to install docker toolset via commands on MacOS,
+			echo more details: https://docs.docker.com/docker-for-mac/install/
+			exit 1
+		fi
 		sudo curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
 		sudo chmod +x /usr/local/bin/docker-compose
 	fi
@@ -69,6 +74,11 @@ function installCurl() {
 }
 function installDocker() {
 	if ! docker version | grep $dockerVersion; then
+		if [ $(uname) == "Darwin" ]; then
+			echo There is no recommended way to install docker toolset via commands on MacOS,
+			echo more details: https://docs.docker.com/docker-for-mac/install/
+			exit 1
+		fi
 		if ! curl version; then
 			installCurl
 		fi
@@ -82,13 +92,13 @@ function installDocker() {
 	fi
 }
 function dockerGOSDK() {
-    date
-    echo "estimated time: 10 minutes"
+	date
+	echo "estimated time: 10 minutes"
 	go get -u -v github.com/docker/docker/client
 	date
 	GOPATH=$(go env GOPATH)
 	cd $GOPATH/src/github.com/docker/docker
-    git checkout 17.05.x
+	git checkout 17.05.x
 	cd -
 }
 if [ -n "$fcn" ]; then
