@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-CURRENT=$(
-	cd $(dirname ${BASH_SOURCE})
-	pwd
-)
 set -e
 fcn=$1
 remain_params=""
