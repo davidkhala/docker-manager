@@ -16,7 +16,11 @@ if [ -n "$fcn" ]; then
 else
 	if ! node --version | grep 'v8.'; then
 		# install nodejs
-		curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-		sudo apt-get -qq install -y nodejs
+		if [ $(uname) == "Darwin" ]; then
+			brew install node@8
+		else
+			curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
+			sudo apt-get -qq install -y nodejs
+		fi
 	fi
 fi

@@ -75,20 +75,19 @@ function installDocker() {
 				echo There is no recommended way to install docker toolset via commands on MacOS,
 				echo more details: https://docs.docker.com/docker-for-mac/install/
 				exit 1
-			else
-				return
 			fi
+		else
+			if ! curl version; then
+				installCurl
+			fi
+			sudo apt-get install -y apt-transport-https
+			# install docker-ce
+			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+			sudo apt-key fingerprint 0EBFCD88
+			sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+			sudo apt-get update
+			sudo apt-get -qq install -y --allow-downgrades docker-ce=${dockerVersion}*
 		fi
-		if ! curl version; then
-			installCurl
-		fi
-		sudo apt-get install -y apt-transport-https
-		# install docker-ce
-		curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-		sudo apt-key fingerprint 0EBFCD88
-		sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-		sudo apt-get update
-		sudo apt-get -qq install -y --allow-downgrades docker-ce=${dockerVersion}*
 	fi
 }
 function dockerGOSDK() {

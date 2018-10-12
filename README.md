@@ -14,3 +14,5 @@ https://get.daocloud.io/
 # dockerSUDO.sh
 this script help to make docker command runnable without `sudo` prefix
 
+# TODO
+- test on mac machine: docker version mismatch, nodejs 
