@@ -71,9 +71,13 @@ function installCurl() {
 function installDocker() {
 	if ! docker version | grep $dockerVersion; then
 		if [ $(uname) == "Darwin" ]; then
-			echo There is no recommended way to install docker toolset via commands on MacOS,
-			echo more details: https://docs.docker.com/docker-for-mac/install/
-			exit 1
+			if ! docker version; then
+				echo There is no recommended way to install docker toolset via commands on MacOS,
+				echo more details: https://docs.docker.com/docker-for-mac/install/
+				exit 1
+			else
+				return
+			fi
 		fi
 		if ! curl version; then
 			installCurl
