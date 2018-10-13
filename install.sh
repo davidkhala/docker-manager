@@ -65,9 +65,6 @@ function shipyard() {
 		curl -sSL https://shipyard-project.com/deploy | ACTION=upgrade sudo bash -s
 	fi
 }
-function installCurl() {
-	sudo apt-get install -y curl
-}
 function installDocker() {
 	if ! docker version | grep $dockerVersion; then
 		if [ $(uname) == "Darwin" ]; then
@@ -78,7 +75,7 @@ function installDocker() {
 			fi
 		else
 			if ! curl version; then
-				installCurl
+				sudo apt-get install -y curl
 			fi
 			sudo apt-get install -y apt-transport-https
 			# install docker-ce
