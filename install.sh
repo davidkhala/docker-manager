@@ -7,7 +7,7 @@ for ((i = 2; i <= ${#}; i++)); do
 	remain_params="$remain_params $j"
 done
 
-dockerVersion=17.12
+dockerVersion=18
 composeVersion=1.22.0
 jqVersion=1.5
 while getopts "d:c:j:" shortname $remain_params; do
