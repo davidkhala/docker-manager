@@ -14,4 +14,10 @@ https://get.daocloud.io/
 this script help to make docker command runnable without `sudo` prefix (Ubuntu only)
 
 # TODO
-- test on mac machine: docker version mismatch, nodejs 
+- do not re-create wheels, see what fabric using:
+    ```
+    [[constraint]]
+        name = "github.com/fsouza/go-dockerclient"
+        version = "1.2.0"
+    ```
+     
