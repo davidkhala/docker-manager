@@ -1,18 +1,8 @@
 const Dockerode = require('dockerode');
 
 const docker = new Dockerode();
-const winston = require('winston');
 
-const logger = new (winston.Logger)({
-	transports: [
-		new (winston.transports.Console)({
-			level: 'debug',
-			colorize: true,
-			label: 'dockerode',
-			timestamp:true
-		})
-	]
-});
+const logger = require('khala-nodeutils/logger').new('dockerode');
 
 const dockerCmd = require('./dockerCmd');
 exports.containerDelete = async containerName => {
