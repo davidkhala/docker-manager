@@ -10,8 +10,8 @@ done
 dockerVersion=18
 composeVersion=1.22.0
 jqVersion=1.5
-while getopts "d:c:j:" shortname $remain_params; do
-	case $shortname in
+while getopts "d:c:j:" shortname ${remain_params}; do
+	case ${shortname} in
 	d)
 		echo "docker-ce version (default: ${dockerVersion}) ==> $OPTARG"
 		dockerVersion="$OPTARG"
@@ -32,20 +32,20 @@ while getopts "d:c:j:" shortname $remain_params; do
 done
 
 function installjq() {
-	if ! jq --version | grep $jqVersion; then
-		if [ $(uname) == "Darwin" ]; then
+	if ! jq --version | grep ${jqVersion}; then
+		if [[ $(uname) == "Darwin" ]]; then
 			brew install jq
-			return
+		else
+			sudo apt-get update
+			sudo apt-get -qq install -y jq=${jqVersion}*
 		fi
-		# install jq for parsing json content
-		sudo apt-get update
-		sudo apt-get -qq install -y jq=${jqVersion}*
+
 	fi
 }
 
 function installCompose() {
-	if ! docker-compose version | grep $composeVersion; then
-		if [ $(uname) == "Darwin" ]; then
+	if ! docker-compose version | grep ${composeVersion}; then
+		if [[ $(uname) == "Darwin" ]]; then
 			echo There is no recommended way to install docker toolset via commands on MacOS,
 			echo more details: https://docs.docker.com/docker-for-mac/install/
 			exit 1
@@ -57,17 +57,17 @@ function installCompose() {
 
 function shipyard() {
 	local action=$1
-	if [ $action == "install" ]; then
+	if [[ ${action} == "install" ]]; then
 		curl -sSL https://shipyard-project.com/deploy | sudo bash -s
-	elif [ $action == "uninstall" ]; then
+	elif [[ ${action} == "uninstall" ]]; then
 		curl -sSL https://shipyard-project.com/deploy | ACTION=remove sudo -E bash -s cause -E preserves environmental vaiables set
-	elif [ $action == "refresh" ]; then
+	elif [[ ${action} == "refresh" ]]; then
 		curl -sSL https://shipyard-project.com/deploy | ACTION=upgrade sudo bash -s
 	fi
 }
 function installDocker() {
-	if ! docker version | grep $dockerVersion; then
-		if [ $(uname) == "Darwin" ]; then
+	if ! docker version | grep ${dockerVersion}; then
+		if [[ $(uname) == "Darwin" ]]; then
 			if ! docker version; then
 				echo There is no recommended way to install docker toolset via commands on MacOS,
 				echo more details: https://docs.docker.com/docker-for-mac/install/
@@ -87,18 +87,8 @@ function installDocker() {
 		fi
 	fi
 }
-function dockerGOSDK() {
-	date
-	echo "estimated time: 10 minutes"
-	go get -u -v github.com/docker/docker/client
-	date
-	GOPATH=$(go env GOPATH)
-	cd $GOPATH/src/github.com/docker/docker
-	git checkout 17.05.x
-	cd -
-}
-if [ -n "$fcn" ]; then
-	$fcn $remain_params
+if [[ -n "$fcn" ]]; then
+	${fcn} ${remain_params}
 else
 	installDocker
 	installjq
