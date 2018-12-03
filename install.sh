@@ -7,7 +7,7 @@ for ((i = 2; i <= ${#}; i++)); do
 	remain_params="$remain_params $j"
 done
 
-dockerVersion=18
+dockerVersion=18.06
 composeVersion=1.22.0
 jqVersion=1.5
 while getopts "d:c:j:" shortname ${remain_params}; do
@@ -74,7 +74,7 @@ function installDocker() {
 				exit 1
 			fi
 		else
-			if ! curl version; then
+			if ! curl --version; then
 				sudo apt-get install -y curl
 			fi
 			sudo apt-get install -y apt-transport-https
@@ -83,6 +83,7 @@ function installDocker() {
 			sudo apt-key fingerprint 0EBFCD88
 			sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 			sudo apt-get update
+			service docker stop
 			sudo apt-get -qq install -y --allow-downgrades docker-ce=${dockerVersion}*
 		fi
 	fi
