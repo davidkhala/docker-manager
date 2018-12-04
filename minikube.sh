@@ -11,3 +11,5 @@ clean() {
 view() {
 	minikube dashboard
 }
+
+$1

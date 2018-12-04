@@ -24,3 +24,7 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
         name = "github.com/fsouza/go-dockerclient"
         version = "1.2.0"
     ```
+
+- kubeadm init:  
+[ERROR Swap]: running with swap on is not supported. Please disable swap
+https://github.com/kubernetes/kubeadm/issues/610
