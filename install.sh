@@ -83,7 +83,6 @@ function installDocker() {
 			sudo apt-key fingerprint 0EBFCD88
 			sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
 			sudo apt-get update
-			service docker stop
 			sudo apt-get -qq install -y --allow-downgrades docker-ce=${dockerVersion}*
 		fi
 	fi
