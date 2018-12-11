@@ -23,4 +23,8 @@ function imageTrim(){
 #    WARNING! This will remove all images without at least one container associated to them.
     docker image prune -a
 }
+function exec(){
+    local containerName=$1
+    docker exec -it ${containerName} bash
+}
 $fcn $remain_params
