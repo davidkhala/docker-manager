@@ -322,7 +322,7 @@ exports.imageDelete = async (imageName) => {
 		const image = docker.getImage(imageName);
 		const imageInfo = await image.inspect();
 		logger.info('delete image', imageInfo.RepoTags);
-		return await image.remove();
+		return await image.remove({force:true});
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
 			logger.info(err.json.message, 'skip deleting');
