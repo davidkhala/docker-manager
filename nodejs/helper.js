@@ -4,7 +4,9 @@ const ips = () => {
 	const allInterfaces = os.networkInterfaces();
 	const ips = [];
 	for (const interfaceName in allInterfaces) {
-		if (interfaceName.includes('docker')) continue;
+		if (interfaceName.includes('docker')) {
+			continue;
+		}
 		const Interface = allInterfaces[interfaceName];
 		for (const each of Interface) {
 			if (each.family === 'IPv4' && !each.internal) {

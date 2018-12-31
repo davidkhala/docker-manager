@@ -28,3 +28,5 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
 - kubeadm init:  
 [ERROR Swap]: running with swap on is not supported. Please disable swap
 https://github.com/kubernetes/kubeadm/issues/610
+
+- refactor: split docker-swarm api to an optional level

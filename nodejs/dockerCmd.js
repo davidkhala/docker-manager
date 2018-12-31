@@ -9,7 +9,9 @@ exports.systemPrune = async () => {
 };
 exports.systemInfo = async () => {
 	const {stdout, stderr} = await exec('docker info --format \'{{json .}}\'');
-	if (stderr) throw stderr;
+	if (stderr) {
+		throw stderr;
+	}
 	return stdout;
 };
 exports.swarmWorkerInfo = async () => {
@@ -18,7 +20,9 @@ exports.swarmWorkerInfo = async () => {
 };
 exports.nodeInspect = async (id) => {
 	const {stdout, stderr} = await exec(`docker node inspect ${id}`);
-	if (stderr) throw stderr;
+	if (stderr) {
+		throw stderr;
+	}
 	return JSON.parse(stdout)[0];
 };
 exports.nodeSelf = async (pretty) => {
@@ -35,13 +39,17 @@ exports.nodeSelf = async (pretty) => {
 exports.copy = async (containerName, from, to, toContainer) => {
 	const cmd = toContainer ? `docker cp ${from} ${containerName}:${to}` : `docker cp ${containerName}:${from} ${to}`;
 	const {stdout, stderr} = await exec(cmd);
-	if (stderr) throw stderr;
+	if (stderr) {
+		throw stderr;
+	}
 	return stdout;
 };
 exports.joinToken = async (role = 'manager') => {
 	const cmd = `docker swarm join-token ${role} | grep docker`;
 	const {stdout, stderr} = await exec(cmd);
-	if (stderr) throw stderr;
+	if (stderr) {
+		throw stderr;
+	}
 	return stdout.trim();
 };
 exports.advertiseAddr = async (fullToken) => {

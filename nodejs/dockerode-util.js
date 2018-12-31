@@ -10,7 +10,7 @@ exports.containerDelete = async containerName => {
 	try {
 		const containInfo = await container.inspect();
 		logger.debug('delete container', containerName, containInfo.State.Status);
-		//possible status:[created|restarting|running|removing|paused|exited|dead]
+		// possible status:[created|restarting|running|removing|paused|exited|dead]
 		if (!['exited', 'created', 'dead'].includes(containInfo.State.Status)) {
 			await container.kill();
 		}
@@ -18,7 +18,9 @@ exports.containerDelete = async containerName => {
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such container') {
 			logger.info(err.json.message, 'deleting skipped');
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 exports.containerStart = async (createOptions) => {
@@ -28,7 +30,9 @@ exports.containerStart = async (createOptions) => {
 		if (['exited', 'created'].includes(info.State.Status)) {
 			await container.start();
 			return await container.inspect();
-		} else return info;
+		} else {
+			return info;
+		}
 	};
 	try {
 		const info = await container.inspect();
@@ -41,7 +45,9 @@ exports.containerStart = async (createOptions) => {
 			await docker.createContainer(createOptions);
 			const info = await container.inspect();
 			return await start(info);
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 exports.containerExec = async ({container_name, Cmd}) => {
@@ -126,7 +132,7 @@ exports.swarmInit = async ({AdvertiseAddr}) => {
 				logger.info('swarmInit: exist swarm with matched AdvertiseAddr', AdvertiseAddr);
 				return;
 			}
-			//not to handle consensus problem
+			// not to handle consensus problem
 		}
 		throw err;
 	}
@@ -140,13 +146,17 @@ exports.swarmBelongs = async ({ID} = {}, token) => {
 		}
 		const {JoinTokens} = info;
 		const {Worker, Manager} = JoinTokens;
-		if (Worker === token || Manager === token) return {result: true, swarm: info};
+		if (Worker === token || Manager === token) {
+			return {result: true, swarm: info};
+		}
 		return {result: false, swarm: info};
 	} catch (err) {
 		if (err.statusCode === 503 && err.json.message.includes('This node is not a swarm manager')) {
 			logger.warn('swarm Belongs', err.json.message);
 			return {result: false};
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 /**
@@ -168,7 +178,7 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
 	} catch (err) {
 		if (err.statusCode === 503) {
 			if (err.json.message.includes('This node is already part of a swarm.')) {
-				//check if it is same swarm
+				// check if it is same swarm
 				const {result, swarm} = await exports.swarmBelongs(undefined, JoinToken);
 				if (!result) {
 					if (swarm) {
@@ -182,7 +192,7 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
 				return swarm;
 			} else if (err.json.message.includes('Timeout was reached before node joined')) {
 				logger.warn(err.json.message);
-				//TODO to test when will happened
+				// TODO to test when will happened
 				let retryCounter = 0;
 				const retryMax = 5;
 				const timeInterval = 1000;
@@ -219,7 +229,9 @@ exports.swarmLeave = async () => {
 	} catch (err) {
 		if (err.statusCode === 503 && err.json.message === 'This node is not part of a swarm') {
 			logger.info('swarmLeave skipped:', err.json.message);
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 
@@ -235,9 +247,11 @@ exports.serviceDelete = async serviceName => {
 		return info;
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such service') {
-			//swallow
+			// swallow
 			logger.info(err.json.message, 'deleting skipped');
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 exports.serviceClear = async serviceName => {
@@ -250,9 +264,11 @@ exports.serviceClear = async serviceName => {
 		}
 	} catch (err) {
 		if (err.statusCode === 404 && err.json.message === `service ${serviceName} not found`) {
-			//swallow
+			// swallow
 			logger.info(err.json.message, 'clear skipped');
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 
@@ -313,7 +329,9 @@ exports.serviceCreateIfNotExist = async ({Image, Name, Cmd, network, Constraints
 			};
 			const service = await docker.createService(opts);
 			return await service.inspect();
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 
@@ -326,7 +344,9 @@ exports.imageDelete = async (imageName) => {
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
 			logger.info(err.json.message, 'skip deleting');
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 exports.imageCreateIfNotExist = async (imageName) => {
@@ -340,16 +360,18 @@ exports.imageCreateIfNotExist = async (imageName) => {
 			logger.info(err.json.message, 'pulling');
 			await exports.imagePull(imageName);
 			return await image.inspect();
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 exports.imagePull = async (imageName) => {
 
-	//FIXED: fatal bug: if immediately do docker operation after callback:
+	// FIXED: fatal bug: if immediately do docker operation after callback:
 	// reason: 'no such container',
 	// 		statusCode: 404,
 	// 		json: { message: 'No such image: hello-world:latest' } }
-	//See discussion in https://github.com/apocas/dockerode/issues/107
+	// See discussion in https://github.com/apocas/dockerode/issues/107
 	const stream = await docker.pull(imageName);
 	return new Promise((resolve, reject) => {
 		const onProgress = (progress) => {
@@ -388,7 +410,9 @@ exports.volumeRemove = async (Name) => {
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such volume') {
 			logger.info(err.json.message, 'delete skipped');
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 exports.taskList = ({services, nodes} = {}) => {
@@ -461,7 +485,9 @@ exports.networkCreateIfNotExist = async ({Name}, swarm) => {
 		if (err.statusCode === 404 && err.reason === 'no such network') {
 			logger.info(err.json.message, 'creating');
 			return await exports.networkCreate({Name}, swarm);
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 exports.networkRemove = async (Name) => {
@@ -472,13 +498,17 @@ exports.networkRemove = async (Name) => {
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such network') {
 			logger.info(err.json.message, 'deleting skipped');
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 
 exports.taskLiveWaiter = async (service) => {
 	const task = await exports.findTask({service: service.ID, state: 'running'});
-	if (task) return task;
+	if (task) {
+		return task;
+	}
 	await new Promise(resolve => {
 		setTimeout(() => {
 			logger.warn('task wait until live', 'for service', service.Spec.Name);
@@ -504,7 +534,9 @@ exports.taskDeadWaiter = async (task) => {
 			} catch (err) {
 				if (err.statusCode === 404 && err.reason === 'no such container') {
 					logger.info(err.json.message, 'cleaned');
-				} else throw err;
+				} else {
+					throw err;
+				}
 			}
 		}
 		return new Promise(resolve => {
@@ -515,7 +547,9 @@ exports.taskDeadWaiter = async (task) => {
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'unknown task') {
 			logger.info(err.json.message, 'skipped');
-		} else throw err;
+		} else {
+			throw err;
+		}
 	}
 };
 
@@ -573,9 +607,15 @@ exports.prune = {
 exports.constraintsBuilder = ({ID, hostname, role}, labels, engineLabels) => {
 
 	const constraints = [];
-	if (ID) constraints.push(`node.id==${ID}`);
-	if (hostname) constraints.push(`node.hostname==${hostname}`);
-	if (role) constraints.push(`node.role==${role}`);
+	if (ID) {
+		constraints.push(`node.id==${ID}`);
+	}
+	if (hostname) {
+		constraints.push(`node.hostname==${hostname}`);
+	}
+	if (role) {
+		constraints.push(`node.role==${role}`);
+	}
 	if (labels) {
 		for (const key in labels) {
 			const value = labels[key];
