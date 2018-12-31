@@ -82,7 +82,7 @@ exports.nodeList = async (pretty) => {
 		nodes = nodes.map(node => {
 			const {
 				ID, Spec, Status, ManagerStatus, Description: {
-					Hostname, Platform, Engine: {EngineVersion},
+					Hostname, Platform, Engine: {EngineVersion}
 				}
 			} = node;
 			return {
@@ -120,7 +120,7 @@ exports.swarmInit = async ({AdvertiseAddr}) => {
 	const opts = {
 		ListenAddr: '0.0.0.0:2377',
 		AdvertiseAddr,
-		ForceNewCluster: false,
+		ForceNewCluster: false
 	};
 	try {
 		await docker.swarmInit(opts);
@@ -171,7 +171,7 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
 	const opts = {
 		ListenAddr: `${selfIp}:2377`,
 		JoinToken,
-		RemoteAddrs: [AdvertiseAddr],
+		RemoteAddrs: [AdvertiseAddr]
 	};
 	try {
 		return await docker.swarmJoin(opts);
@@ -182,7 +182,7 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
 				const {result, swarm} = await exports.swarmBelongs(undefined, JoinToken);
 				if (!result) {
 					if (swarm) {
-						throw `belongs to another swarm ${swarm.ID}`;
+						throw Error(`belongs to another swarm ${swarm.ID}`);
 					} else {
 						logger.info('swarm joined already', 'as worker');
 						return dockerCmd.swarmWorkerInfo();
@@ -200,13 +200,13 @@ exports.swarmJoin = async ({AdvertiseAddr, JoinToken}, selfIp) => {
 					setTimeout(async () => {
 						try {
 							resolve(await dockerCmd.nodeSelf());
-						} catch (err) {
+						} catch (inspectErr) {
 							retryCounter++;
 							logger.warn(`retry node self inspect after ${timeInterval}ms `);
 							if (retryCounter < retryMax) {
 								resolve(selfInspectLooper());
 							} else {
-								reject(err);
+								reject(inspectErr);
 							}
 						}
 
@@ -293,7 +293,7 @@ exports.serviceCreateIfNotExist = async ({Image, Name, Cmd, network, Constraints
 								'ReadOnly': false,
 								'Source': volumeName,
 								'Target': volume,
-								Type,
+								Type
 								// "VolumeOptions": {
 								//     "DriverConfig": {
 								//     },
@@ -340,7 +340,7 @@ exports.imageDelete = async (imageName) => {
 		const image = docker.getImage(imageName);
 		const imageInfo = await image.inspect();
 		logger.info('delete image', imageInfo.RepoTags);
-		return await image.remove({force:true});
+		return await image.remove({force: true});
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
 			logger.info(err.json.message, 'skip deleting');
@@ -419,7 +419,7 @@ exports.taskList = ({services, nodes} = {}) => {
 	return docker.listTasks({
 		filters: {
 			service: Array.isArray(services) ? services : [],
-			node: Array.isArray(nodes) ? nodes : [],
+			node: Array.isArray(nodes) ? nodes : []
 		}
 	});
 };
@@ -449,7 +449,7 @@ exports.findTask = async ({service, node, state} = {}) => {
 	}
 	const result = await exports.taskList({
 		services: service ? [service] : [],
-		nodes: node ? [node] : [],
+		nodes: node ? [node] : []
 	});
 	return result.find(({Status}) => {
 		return state ? Status.State === state : true;
@@ -461,7 +461,7 @@ exports.networkCreate = async ({Name}, swarm) => {
 		Name, CheckDuplicate: true,
 		Driver: swarm ? 'overlay' : 'bridge',
 		Internal: false,
-		Attachable: true,
+		Attachable: true
 	});
 	return await network.inspect();
 };

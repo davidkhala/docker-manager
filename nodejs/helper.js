@@ -2,7 +2,7 @@ const os = require('os');
 
 const ips = () => {
 	const allInterfaces = os.networkInterfaces();
-	const ips = [];
+	const results = [];
 	for (const interfaceName in allInterfaces) {
 		if (interfaceName.includes('docker')) {
 			continue;
@@ -10,20 +10,20 @@ const ips = () => {
 		const Interface = allInterfaces[interfaceName];
 		for (const each of Interface) {
 			if (each.family === 'IPv4' && !each.internal) {
-				ips.push(each.address);
+				results.push(each.address);
 			}
 		}
 	}
-	return ips;
+	return results;
 };
 exports.ips = ips;
 exports.ip = () => {
-	const ips = ips();
-	if (ips.length === 1) {
-		return ips[0];
-	} else if (ips.length > 1) {
-		throw `multiple ip found ${ips}`;
+	const ipList = ips();
+	if (ipList.length === 1) {
+		return ipList[0];
+	} else if (ipList.length > 1) {
+		throw Error(`multiple ip found ${ipList}`);
 	} else {
-		throw 'no ip found';
+		throw Error('no ip found');
 	}
 };
