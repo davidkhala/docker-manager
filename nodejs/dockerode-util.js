@@ -71,7 +71,7 @@ exports.inflateContainerName = async (container_name) => {
 		return Names.find(name => name.includes(container_name));
 	});
 	if (container) {
-		const name = container.Names.find(name => name.includes(container_name));
+		const name = container.Names.find(_ => _.includes(container_name));
 		return name.substring(1, name.length);
 	}
 };
