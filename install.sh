@@ -69,9 +69,8 @@ function installDocker() {
 	if ! docker version | grep ${dockerVersion}; then
 		if [[ $(uname) == "Darwin" ]]; then
 			if ! docker version; then
-				echo There is no recommended way to install docker toolset via commands on MacOS,
-				echo more details: https://docs.docker.com/docker-for-mac/install/
-				exit 1
+				brew cask install docker
+				open -a Docker
 			fi
 		else
 			if ! curl --version; then
