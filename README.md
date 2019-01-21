@@ -24,7 +24,7 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
         name = "github.com/fsouza/go-dockerclient"
         version = "1.2.0"
     ```
-
+- driver failed programming external connectivity on endpoint peer1.MCC (b8b9151a3542d8b632c3d633d115c9fb8ed69aabf2a868ca33bceda9fd02f92e): Bind for 0.0.0.0:7151 failed: port is already allocated 
 - kubeadm init:  
 [ERROR Swap]: running with swap on is not supported. Please disable swap
 https://github.com/kubernetes/kubeadm/issues/610
