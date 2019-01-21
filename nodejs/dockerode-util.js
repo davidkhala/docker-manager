@@ -3,6 +3,7 @@ const Dockerode = require('dockerode');
 const docker = new Dockerode();
 
 const logger = require('khala-nodeutils/logger').new('dockerode');
+const {sleep} = require('khala-nodeutils/helper');
 exports.containerStatus = ['created', 'restarting', 'running', 'removing', 'paused', 'exited', 'dead'];
 const dockerCmd = require('./dockerCmd');
 exports.containerDelete = async containerName => {
@@ -25,30 +26,41 @@ exports.containerDelete = async containerName => {
 };
 exports.containerStart = async (createOptions) => {
 	const {name: containerName, Image: imageName} = createOptions;
-	const container = docker.getContainer(containerName);
-	const start = async (info) => {
-		if (['exited', 'created'].includes(info.State.Status)) {
-			await container.start();
-			return await container.inspect();
-		} else {
-			return info;
-		}
-	};
+	let container = docker.getContainer(containerName);
+	let info;
+
 	try {
-		const info = await container.inspect();
+		info = await container.inspect();
 		logger.info('container found', containerName, info.State.Status);
-		return await start(info);
+
 	} catch (err) {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
 			logger.info(err.json.message, 'creating');
 			await exports.imageCreateIfNotExist(imageName);
-			await docker.createContainer(createOptions);
-			const info = await container.inspect();
-			return await start(info);
+			container = await docker.createContainer(createOptions);
+			info = await container.inspect();
 		} else {
 			throw err;
 		}
 	}
+	const start = async (c, retryCountDown) => {
+		try {
+			await c.start();
+		} catch (e) {
+			if (e.message.includes('port is already allocated') && e.reason === 'server error' && e.statusCode === 500 &&
+				retryCountDown > 0) {
+				await sleep(1000);
+				await start(c, retryCountDown - 1);
+			} else {
+				throw e;
+			}
+		}
+	};
+	if (['exited', 'created'].includes(info.State.Status)) {
+		await start(container, 1);
+		info = await container.inspect();
+	}
+	return info;
 };
 exports.containerExec = async ({container_name, Cmd}) => {
 	const container = docker.getContainer(container_name);
