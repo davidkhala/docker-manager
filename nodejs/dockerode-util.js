@@ -67,6 +67,11 @@ exports.containerExec = async ({container_name, Cmd}) => {
 	exec = await exec.start();
 	return await exec.inspect();
 };
+// TODO how is options
+exports.containerSolidify = async ({container_name}) => {
+	const container = docker.getContainer(container_name);
+	await container.commit();
+};
 exports.containerList = ({all, network, status} = {all: true}) => {
 	// status=(created 	restarting 	running 	paused 	exited 	dead)
 	const filters = {
