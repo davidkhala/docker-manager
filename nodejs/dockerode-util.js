@@ -3,7 +3,7 @@ const Dockerode = require('dockerode');
 const docker = new Dockerode();
 
 const logger = require('khala-nodeutils/logger').new('dockerode');
-
+exports.containerStatus = ['created', 'restarting', 'running', 'removing', 'paused', 'exited', 'dead'];
 const dockerCmd = require('./dockerCmd');
 exports.containerDelete = async containerName => {
 	const container = docker.getContainer(containerName);
