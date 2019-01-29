@@ -30,3 +30,4 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
 https://github.com/kubernetes/kubeadm/issues/610
 
 - refactor: split docker-swarm api to an optional level
+- containerSolidify: container.commit
