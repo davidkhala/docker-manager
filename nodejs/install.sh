@@ -11,12 +11,12 @@ function packageLock() {
 	echo $CMD
 	$CMD
 }
-if [ -n "$fcn" ]; then
+if [[ -n "$fcn" ]]; then
 	$fcn $remain_params
 else
 	if ! node --version | grep 'v8.'; then
 		# install nodejs
-		if [ $(uname) == "Darwin" ]; then
+		if [[ $(uname) == "Darwin" ]]; then
 			brew install node@8
 			echo 'export PATH="/usr/local/opt/node@8/bin:$PATH"' >> ~/.bash_profile
 			export LDFLAGS="-L/usr/local/opt/node@8/lib"
