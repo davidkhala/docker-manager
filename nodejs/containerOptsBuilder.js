@@ -48,7 +48,7 @@ exports.setPortBind = (opts, localBind) => {
 	}
 	opts.ExposedPorts[containerPort] = {};
 	opts.Hostconfig.PortBindings[containerPort] = [{
-		HostPort
+		HostPort: HostPort.toString()
 	}];
 
 	return opts;
