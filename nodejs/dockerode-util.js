@@ -23,35 +23,6 @@ exports.containerDelete = async containerName => {
 		}
 	}
 };
-/**
- * @typedef containerOpts
- * @property {string} name container name
- * @property {string[]} Env
- * @property {string} Cmd
- * @property {string} Image
- * @property {object} ExposedPorts
- * sample: {
-			'7054': {}
-		},
- * @property {object} Hostconfig
- * sample: {
-			PortBindings: {
-				'7054': [
-					{
-						HostPort: port.toString()
-					}
-				]
-			}
-
-		},
- * @property {object} NetworkingConfig: {
-			EndpointsConfig: {
-				[network]: {
-					Aliases: [container_name]
-				}
-			}
-		}
- */
 
 /**
  *
