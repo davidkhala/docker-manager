@@ -27,7 +27,7 @@
 			}
 		}
  */
-
+const logger = require('khala-nodeutils').logger().new('containerOptsBuilder');
 /**
  *
  * @param {containerOpts} opts
@@ -35,15 +35,31 @@
  * @returns {containerOpts}
  */
 exports.setPortBind = (opts, localBind) => {
-	const [containerPort, HostPort] = localBind.split(':');
+	const [HostPort, containerPort] = localBind.split(':');
+	logger.info(`container:${containerPort}=>localhost:${HostPort}`);
+	if (!opts.ExposedPorts) {
+		opts.ExposedPorts = {};
+	}
+	if (!opts.Hostconfig) {
+		opts.Hostconfig = {};
+	}
+	if (!opts.Hostconfig.PortBindings) {
+		opts.Hostconfig.PortBindings = {};
+	}
 	opts.ExposedPorts[containerPort] = {};
-	opts.Hostconfig.PortBindings[containerPort].push({
+	opts.Hostconfig.PortBindings[containerPort] = [{
 		HostPort
-	});
+	}];
 
 	return opts;
 };
 exports.setNetwork = (opts, network, Aliases) => {
+	if (!opts.NetworkingConfig) {
+		opts.NetworkingConfig = {};
+	}
+	if (!opts.NetworkingConfig.EndpointsConfig) {
+		opts.NetworkingConfig.EndpointsConfig = {};
+	}
 	opts.NetworkingConfig.EndpointsConfig[network] = {
 		Aliases
 	};
