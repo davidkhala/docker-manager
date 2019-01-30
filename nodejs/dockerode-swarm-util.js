@@ -1,7 +1,6 @@
-const {docker, containerDelete, containerList} = require('./dockerode-util');
+const {docker, containerDelete} = require('./dockerode-util');
 
-const logger = require('khala-nodeutils/logger').new('dockerode-swarm');
-const {sleep} = require('khala-nodeutils/helper');
+const logger = require('khala-nodeutils').logger().new('dockerode-swarm');
 const {nodeSelf, advertiseAddr, swarmWorkerInfo} = require('./dockerCmd');
 
 exports.nodeList = async (pretty) => {
