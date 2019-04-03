@@ -88,14 +88,7 @@ exports.containerList = ({all, network, status} = {all: true}) => {
 };
 exports.inflateContainerName = async (container_name) => {
 	const containers = await exports.containerList();
-	for (const container of containers) {
-		const {Names} = container;
-		for (const name of Names) {
-			if (name.includes(container_name)) {
-				return name.substring(1, name.length);
-			}
-		}
-	}
+	return containers.filter(container => container.Names.find(name => name.includes(container_name)));
 };
 
 exports.imageList = ({all} = {}) => {
