@@ -18,9 +18,9 @@ else
 		# install nodejs
 		if [[ $(uname) == "Darwin" ]]; then
 			brew install node@8
-			echo 'export PATH="/usr/local/opt/node@8/bin:$PATH"' >> ~/.bash_profile
+			echo 'export PATH="/usr/local/opt/node@8/bin:$PATH"' >>~/.bash_profile
 			export LDFLAGS="-L/usr/local/opt/node@8/lib"
-            export CPPFLAGS="-I/usr/local/opt/node@8/include"
+			export CPPFLAGS="-I/usr/local/opt/node@8/include"
 		else
 			curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
 			sudo apt-get -qq install -y nodejs

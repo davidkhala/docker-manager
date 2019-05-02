@@ -16,7 +16,7 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
 
 # Notes
 - kubeadm@1.12.3 support upper limit is 18.06: https://github.com/kubernetes/minikube/issues/3323
-
+- usd nodejs module in `npm khala-dockerode` 
 # TODO
 - do not re-create wheels, see what fabric using:
     ```
@@ -30,8 +30,4 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
 https://github.com/kubernetes/kubeadm/issues/610
 
 - refactor: split docker-swarm api to an optional level
-- refactor: migrate directly sub-module reference to 
- - npm `khala-dockerode`
- - install.sh via command pipeline
-  
 - containerSolidify: container.commit
