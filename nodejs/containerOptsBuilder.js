@@ -28,42 +28,92 @@
 		}
  */
 const logger = require('khala-nodeutils').logger().new('containerOptsBuilder');
-/**
- *
- * @param {containerOpts} opts
- * @param localBind `8051:7051`
- * @returns {containerOpts}
- */
-exports.setPortBind = (opts, localBind) => {
-	const [HostPort, containerPort] = localBind.split(':');
-	logger.info(`container:${containerPort}=>localhost:${HostPort}`);
-	if (!opts.ExposedPorts) {
-		opts.ExposedPorts = {};
-	}
-	if (!opts.Hostconfig) {
-		opts.Hostconfig = {};
-	}
-	if (!opts.Hostconfig.PortBindings) {
-		opts.Hostconfig.PortBindings = {};
-	}
-	opts.ExposedPorts[containerPort] = {};
-	opts.Hostconfig.PortBindings[containerPort] = [{
-		HostPort: HostPort.toString()
-	}];
 
-	return opts;
-};
-exports.setNetwork = (opts, network, Aliases) => {
-	if (!opts.NetworkingConfig) {
-		opts.NetworkingConfig = {};
+class containerOptsBuilder {
+
+	/**
+	 *
+	 * @param {string} Image
+	 * @param {string} Cmd
+	 */
+	constructor(Image, Cmd) {
+		this.opts = {
+			Image,
+			Cmd
+		};
 	}
-	if (!opts.NetworkingConfig.EndpointsConfig) {
-		opts.NetworkingConfig.EndpointsConfig = {};
+
+	/**
+	 * @param {string} name
+	 * @returns {containerOptsBuilder}
+	 */
+	setName(name) {
+		this.opts.name = name;
+		return this;
 	}
-	opts.NetworkingConfig.EndpointsConfig[network] = {
-		Aliases
+
+	/**
+	 *
+	 * @param {string[]} Env
+	 * @returns {containerOptsBuilder}
+	 */
+	setEnv(Env) {
+		this.opts.Env = Env;
+		return this;
+	}
+
+	/**
+	 * @param {string} localBind `8051:7051`
+	 * @returns {containerOptsBuilder}
+	 */
+	setPortBind(localBind) {
+		const [HostPort, containerPort] = localBind.split(':');
+		logger.info(`container:${containerPort}=>localhost:${HostPort}`);
+		if (!this.opts.ExposedPorts) {
+			this.opts.ExposedPorts = {};
+		}
+		if (!this.opts.Hostconfig) {
+			this.opts.Hostconfig = {};
+		}
+		if (!this.opts.Hostconfig.PortBindings) {
+			this.opts.Hostconfig.PortBindings = {};
+		}
+		this.opts.ExposedPorts[containerPort] = {};
+		this.opts.Hostconfig.PortBindings[containerPort] = [{
+			HostPort: HostPort.toString()
+		}];
+
+		return this;
 	};
-	return opts;
-};
+
+	/**
+	 * @param {string} network
+	 * @param {string[]} Aliases
+	 * @returns {containerOptsBuilder}
+	 */
+	setNetwork(network, Aliases) {
+		if (!this.opts.NetworkingConfig) {
+			this.opts.NetworkingConfig = {};
+		}
+		if (!this.opts.NetworkingConfig.EndpointsConfig) {
+			this.opts.NetworkingConfig.EndpointsConfig = {};
+		}
+		this.opts.NetworkingConfig.EndpointsConfig[network] = {
+			Aliases
+		};
+		return this;
+	};
+
+	/**
+	 *
+	 * @returns {containerOpts}
+	 */
+	build() {
+		return this.opts;
+	}
+}
+
+module.exports = containerOptsBuilder;
+
 
 
