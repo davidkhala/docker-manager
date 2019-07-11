@@ -60,11 +60,20 @@ class containerOptsBuilder {
 	}
 
 	/**
-	 *
 	 * @param {string[]} Env
 	 * @returns {containerOptsBuilder}
 	 */
 	setEnv(Env) {
+		this.opts.Env = Env;
+		return this;
+	}
+
+	/**
+	 * @param {object} env
+	 * @returns {containerOptsBuilder}
+	 */
+	setEnvObject(env) {
+		const Env = Object.entries(env).map(([key, value]) => `${key}=${value}`);
 		this.opts.Env = Env;
 		return this;
 	}
