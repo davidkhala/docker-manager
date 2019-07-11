@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "description": "dockerode utils",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test"
   },
   "author": "davidliu  <david-khala@hotmail.com>",
   "repository": "davidkhala/docker-manager",
