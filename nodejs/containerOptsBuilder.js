@@ -8,8 +8,15 @@
  * sample: {
 			'7054': {}
 		},
+ * @property {object} Volumes
+ * sample: {
+			[containerPath]: {}
+		};
  * @property {object} Hostconfig
  * sample: {
+            Binds:[
+                `${hostPath}:${containerPath}`
+            ]
 			PortBindings: {
 				'7054': [
 					{
@@ -103,6 +110,24 @@ class containerOptsBuilder {
 		};
 		return this;
 	};
+
+	/**
+	 * @param {string} volumeName or a bind-mount absolute path
+	 * @param {string} containerPath
+	 */
+	setVolume(volumeName, containerPath) {
+		if (!this.opts.Volumes) {
+			this.opts.Volumes = {};
+		}
+		if (!this.opts.Hostconfig) {
+			this.opts.Hostconfig = {};
+		}
+		if (!this.opts.Hostconfig.Binds) {
+			this.opts.Hostconfig.Binds = [];
+		}
+		this.opts.Volumes[containerPath] = {};
+		this.opts.Hostconfig.Binds.push(`${volumeName}:${containerPath}`);
+	}
 
 	/**
 	 *
