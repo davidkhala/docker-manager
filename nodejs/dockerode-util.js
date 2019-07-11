@@ -235,3 +235,4 @@ exports.prune = {
 		await docker.pruneNetworks();
 	}
 };
+exports.ContainerOptsBuilder = require('./containerOptsBuilder');
