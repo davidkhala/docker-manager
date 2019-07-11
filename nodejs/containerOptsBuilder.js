@@ -41,7 +41,7 @@ class containerOptsBuilder {
 	/**
 	 *
 	 * @param {string} Image
-	 * @param {string} Cmd
+	 * @param {string[]} Cmd
 	 */
 	constructor(Image, Cmd) {
 		this.opts = {
@@ -112,8 +112,10 @@ class containerOptsBuilder {
 	};
 
 	/**
+	 *
 	 * @param {string} volumeName or a bind-mount absolute path
 	 * @param {string} containerPath
+	 * @returns {containerOptsBuilder}
 	 */
 	setVolume(volumeName, containerPath) {
 		if (!this.opts.Volumes) {
@@ -127,6 +129,7 @@ class containerOptsBuilder {
 		}
 		this.opts.Volumes[containerPath] = {};
 		this.opts.Hostconfig.Binds.push(`${volumeName}:${containerPath}`);
+		return this;
 	}
 
 	/**
