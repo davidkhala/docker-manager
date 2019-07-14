@@ -31,7 +31,7 @@ while getopts "d:c:j:" shortname ${remain_params}; do
 	esac
 done
 
-function installjq() {
+installjq() {
 	if ! jq --version | grep ${jqVersion}; then
 		if [[ $(uname) == "Darwin" ]]; then
 			brew install jq
@@ -43,7 +43,7 @@ function installjq() {
 	fi
 }
 
-function installCompose() {
+installCompose() {
 	if ! docker-compose version | grep ${composeVersion}; then
 		if [[ $(uname) == "Darwin" ]]; then
 			echo There is no recommended way to install docker toolset via commands on MacOS,
@@ -55,7 +55,7 @@ function installCompose() {
 	fi
 }
 
-function shipyard() {
+shipyard() {
 	local action=$1
 	if [[ ${action} == "install" ]]; then
 		curl -sSL https://shipyard-project.com/deploy | sudo bash -s
@@ -65,7 +65,7 @@ function shipyard() {
 		curl -sSL https://shipyard-project.com/deploy | ACTION=upgrade sudo bash -s
 	fi
 }
-function installDocker() {
+installDocker() {
 	if ! docker version | grep ${dockerVersion}; then
 		if [[ $(uname) == "Darwin" ]]; then
 			if ! docker version; then

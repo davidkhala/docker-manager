@@ -6,7 +6,7 @@ for ((i = 2; i <= $#; i++)); do
 	j=${!i}
 	remain_params="$remain_params $j"
 done
-function viewContainerPort() {
+viewContainerPort() {
 	CMD="docker container port $1 $2"
 	if [ -n "$2" ]; then
 		if [ "$3" == "--ip" ]; then
@@ -19,11 +19,11 @@ function viewContainerPort() {
 	fi
 	$CMD
 }
-function imageTrim(){
+imageTrim(){
 #    WARNING! This will remove all images without at least one container associated to them.
     docker image prune -a
 }
-function exec(){
+exec(){
     local containerName=$1
     docker exec -it ${containerName} bash
 }
