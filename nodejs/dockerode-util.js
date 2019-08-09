@@ -137,17 +137,38 @@ exports.imagePull = async (imageName) => {
 		const onProgress = (progress) => {
 			logger.debug('pull', imageName, progress);
 		};
-		const onFinished = (err, output) => {
+		const onFinished = (err, res) => {
 			if (err) {
-				logger.error('pull image error', {err, output});
+				logger.error('pull image error', {err, res});
 				return reject(err);
 			} else {
-				return resolve(output);
+				return resolve(res);
 			}
 		};
 		docker.modem.followProgress(stream, onFinished, onProgress);
 	});
 
+};
+exports.imageBuild = async (DockerFileDir, imageName) => {
+	const stream = await docker.buildImage({
+		context: DockerFileDir,
+		src: ['Dockerfile']
+	}, {t: imageName});
+
+	await new Promise((resolve, reject) => {
+		const onProgress = (progress) => {
+			logger.debug('build image', imageName, progress);
+		};
+		const onFinished = (err, res) => {
+			if (err) {
+				logger.error('build image error', {err, res});
+				return reject(err);
+			} else {
+				return resolve(res);
+			}
+		};
+		dockerode.modem.followProgress(stream, onFinished, onProgress);
+	});
 };
 
 exports.volumeCreateIfNotExist = ({Name, path}) => {
