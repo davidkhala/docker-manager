@@ -167,7 +167,7 @@ exports.imageBuild = async (DockerFileDir, imageName) => {
 				return resolve(res);
 			}
 		};
-		dockerode.modem.followProgress(stream, onFinished, onProgress);
+		docker.modem.followProgress(stream, onFinished, onProgress);
 	});
 };
 
