@@ -149,6 +149,12 @@ exports.imagePull = async (imageName) => {
 	});
 
 };
+/**
+ * TODO this is not ready to use path context: https://github.com/apocas/dockerode/issues/432
+ * @param DockerFileDir
+ * @param imageName
+ * @returns {Promise<void>}
+ */
 exports.imageBuild = async (DockerFileDir, imageName) => {
 	const stream = await docker.buildImage({
 		context: DockerFileDir,
