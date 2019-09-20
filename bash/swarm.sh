@@ -10,13 +10,13 @@ function viewService() {
 }
 function viewNode() {
 	local isPretty="--pretty"
-	if [ ! "$2" == "$isPretty" ]; then
+	if [[ ! "$2" == "$isPretty" ]]; then
 		isPretty=""
 	fi
-	if [ -z "$1" ]; then
-		docker node inspect self $isPretty
+	if [[ -z "$1" ]]; then
+		docker node inspect self ${isPretty}
 	else
-		docker node inspect "$1" $isPretty
+		docker node inspect "$1" ${isPretty}
 	fi
 }
 function view() {
@@ -31,29 +31,29 @@ function belongTo() {
 		j=${!i}
 		remain_params="$remain_params $j"
 	done
-	paramArray=($remain_params)
+	paramArray=(${remain_params})
 	thisToken=($(managerToken)) # TODO if not joined, managerToken will fail
-	if [ ! "${thisToken[4]}" == "${paramArray[4]}" ]; then
-		echo docker token not matched[${#remain_params}]:$remain_params
+	if [[ ! "${thisToken[4]}" == "${paramArray[4]}" ]]; then
+		echo docker token not matched[${#remain_params}]:${remain_params}
 		exit 1
 	fi
 }
 function rmConstraint() {
 	local service=$1
 	local constraint=$2 # should be exact name to match: 'node.role==manager'
-	docker service update $service --constraint-rm $constraint
+	docker service update ${service} --constraint-rm ${constraint}
 }
 function updateConstraint() {
 	local service=$1
 	local constraint=$2 # should be exact name to match: 'node.role==manager'
-	docker service update $service --constraint-add $constraint
+	docker service update ${service} --constraint-add ${constraint}
 }
 
 function createIfNotExist() {
 	local ip="$1"
 	#    TODO cannot handle: It's possible that too few managers are online. Make sure more than half of the managers are online.
 	if ! view; then
-		create $ip
+		create ${ip}
 		view
 	fi
 }
@@ -84,11 +84,11 @@ function addNodeLabels() {
 		remain_params="$remain_params $j"
 	done
 	local labels=""
-	for entry in $remain_params; do
+	for entry in ${remain_params}; do
 		labels="$labels --label-add $entry"
 	done
 
-	docker node update $labels $node 1>/dev/null
+	docker node update ${labels} ${node} 1>/dev/null
 
 }
 function rmNode() {
@@ -104,10 +104,10 @@ function rmNodeLabels() {
 		remain_params="$remain_params $j"
 	done
 	local labels=""
-	for entry in $remain_params; do
+	for entry in ${remain_params}; do
 		labels="$labels --label-rm $entry"
 	done
 
-	docker node update $labels $node
+	docker node update ${labels} ${node}
 }
-$fcn $remain_params
+${fcn} ${remain_params}

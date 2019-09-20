@@ -8,9 +8,9 @@ done
 createLocal() {
 	local name=$1
 	local path=$2
-	docker volume create --name $name --opt o=bind --opt device=$path --opt type=none
+	docker volume create --name ${name} --opt o=bind --opt device=${path} --opt type=none
 }
 delete() {
 	docker volume rm --force $1
 }
-$fcn $remain_params
+${fcn} ${remain_params}
