@@ -17,6 +17,7 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
 # Notes
 - kubeadm@1.12.3 support upper limit is 18.06: https://github.com/kubernetes/minikube/issues/3323
 - usd nodejs module in `npm khala-dockerode` 
+- get container log file location: `./bash/docker.sh logPath <containerName>`
 # TODO
 - do not re-create wheels, see what fabric using:
     ```
