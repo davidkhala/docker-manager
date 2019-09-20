@@ -27,4 +27,11 @@ bash(){
     local containerName=$1
     docker exec -it ${containerName} bash
 }
+getID(){
+    docker ps --no-trunc -aqf "name=^${1}$"
+}
+logPath(){
+    local containerID=$(getID $1)
+    echo /var/lib/docker/containers/${containerID}/${containerID}-json.log
+}
 ${fcn} ${remain_params}
