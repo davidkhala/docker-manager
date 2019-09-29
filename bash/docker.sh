@@ -19,19 +19,24 @@ viewContainerPort() {
 	fi
 	$CMD
 }
-imageTrim(){
-#    WARNING! This will remove all images without at least one container associated to them.
-    docker image prune -a
+imageTrim() {
+	#    WARNING! This will remove all images without at least one container associated to them.
+	docker image prune -a
 }
-bash(){
-    local containerName=$1
-    docker exec -it ${containerName} bash
+buildImage() {
+	local imageName=$1
+	local buildContext=${2:-.}
+	docker build --tag="$imageName" "$buildContext"
 }
-getID(){
-    docker ps --no-trunc -aqf "name=^${1}$"
+bash() {
+	local containerName=$1
+	docker exec -it "${containerName}" bash
 }
-logPath(){
-    local containerID=$(getID $1)
-    echo /var/lib/docker/containers/${containerID}/${containerID}-json.log
+getID() {
+	docker ps --no-trunc -aqf "name=^${1}$"
+}
+logPath() {
+	local containerID=$(getID $1)
+	echo /var/lib/docker/containers/${containerID}/${containerID}-json.log
 }
 ${fcn} ${remain_params}
