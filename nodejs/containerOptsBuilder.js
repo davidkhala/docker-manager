@@ -34,7 +34,7 @@
 			}
 		}
  */
-const logger = require('khala-nodeutils').logger().new('containerOptsBuilder');
+const logger = require('khala-logger').new('containerOptsBuilder');
 
 class containerOptsBuilder {
 
