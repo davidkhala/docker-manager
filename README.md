@@ -35,3 +35,4 @@ https://github.com/kubernetes/kubeadm/issues/610
 
 - refactor: split docker-swarm api to an optional level
 - containerSolidify: container.commit
+- [k8s post](https://www.freecodecamp.org/news/learn-kubernetes-in-under-3-hours-a-detailed-guide-to-orchestrating-containers-114ff420e882/)
