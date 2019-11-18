@@ -1,4 +1,5 @@
 # docker-manager
+[![Build Status](https://travis-ci.com/davidkhala/docker-manager.svg?branch=master)](https://travis-ci.com/davidkhala/docker-manager)
 
 ## Installation
 
