@@ -29,5 +29,4 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
       version = "1.2.0"
   ```
 - [issue][docker][occasional]driver failed programming external connectivity on endpoint peer1.MCC (b8b9151a3542d8b632c3d633d115c9fb8ed69aabf2a868ca33bceda9fd02f92e): Bind for 0.0.0.0:7151 failed: port is already allocated
-- refactor: split docker-swarm api to an optional level
 - containerSolidify: container.commit
