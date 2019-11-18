@@ -8,6 +8,6 @@ matrix:
         - ./install.sh
         - cd nodejs; npm install ; cd -
       script:
-        - cd nodejs; node test.js
+        - cd nodejs/test; node index.js
 
 
