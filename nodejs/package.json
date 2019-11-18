@@ -1,6 +1,6 @@
 {
   "name": "khala-dockerode",
-  "version": "0.0.8",
+  "version": "0.1.0",
   "license": "Apache-2.0",
   "description": "dockerode utils",
   "scripts": {
@@ -9,7 +9,7 @@
   "author": "davidliu  <david-khala@hotmail.com>",
   "repository": "davidkhala/docker-manager",
   "dependencies": {
-    "dockerode": "^2.5.0",
+    "dockerode": "^3.0.2",
     "khala-logger": "^0.0.1"
   }
 }

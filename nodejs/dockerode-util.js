@@ -2,17 +2,30 @@ const Dockerode = require('dockerode');
 
 const docker = new Dockerode();
 exports.docker = docker;
-const logger = require('khala-logger').new('dockerode');
+const logger = require('khala-logger').new('dockerode', process.env.deployment === 'debug' ? 4 : 2);
 
 const sleep = async (ms) => new Promise(resolve => setTimeout(resolve, ms));
-exports.containerStatus = ['created', 'restarting', 'running', 'removing', 'paused', 'exited', 'dead'];
+/**
+ *
+ * @enum {string}
+ */
+const ContainerStatus = {
+	created: 'created',
+	restarting: 'restarting',
+	running: 'running',
+	removing: 'removing',
+	paused: 'paused',
+	exited: 'exited',
+	dead: 'dead'
+};
+exports.ContainerStatus = ContainerStatus;
 exports.containerDelete = async containerName => {
 	const container = docker.getContainer(containerName);
 	try {
 		const containInfo = await container.inspect();
-		logger.debug('delete container', containerName, containInfo.State.Status);
-		// possible status:[created|restarting|running|removing|paused|exited|dead]
-		if (!['exited', 'created', 'dead'].includes(containInfo.State.Status)) {
+		const currentStatus = containInfo.State.Status;
+		logger.debug('delete container', containerName, currentStatus);
+		if (![ContainerStatus.exited, ContainerStatus.created, ContainerStatus.dead].includes(currentStatus)) {
 			await container.kill();
 		}
 		return await container.remove();
@@ -126,11 +139,6 @@ exports.imageCreateIfNotExist = async (imageName) => {
 };
 exports.imagePull = async (imageName) => {
 
-	// FIXED: fatal bug: if immediately do docker operation after callback:
-	// reason: 'no such container',
-	// 		statusCode: 404,
-	// 		json: { message: 'No such image: hello-world:latest' } }
-	// See discussion in https://github.com/apocas/dockerode/issues/107
 	const stream = await docker.pull(imageName);
 	return new Promise((resolve, reject) => {
 		const onProgress = (progress) => {
@@ -164,7 +172,8 @@ exports.volumeRemove = async (Name) => {
 	try {
 		const volume = docker.getVolume(Name);
 		const info = await volume.inspect();
-		logger.info('delete volume', Name, info);
+		logger.info('delete volume', Name);
+		logger.debug('delete volume', info);
 		return await volume.remove();
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such volume') {
