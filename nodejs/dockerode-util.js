@@ -113,9 +113,7 @@ exports.imageDelete = async (imageName) => {
 exports.imageCreateIfNotExist = async (imageName) => {
 	const image = docker.getImage(imageName);
 	try {
-		const imageInfo = await image.inspect();
-		logger.info('image found', imageInfo.RepoTags);
-		return imageInfo;
+		return await image.inspect();
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
 			logger.info(err.json.message, 'pulling');

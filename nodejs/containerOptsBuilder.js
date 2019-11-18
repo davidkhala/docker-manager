@@ -84,7 +84,7 @@ class containerOptsBuilder {
 	 */
 	setPortBind(localBind) {
 		const [HostPort, containerPort] = localBind.split(':');
-		logger.info(`container:${containerPort}=>localhost:${HostPort}`);
+		logger.info(`container:${containerPort} => localhost:${HostPort}`);
 		if (!this.opts.ExposedPorts) {
 			this.opts.ExposedPorts = {};
 		}
