@@ -2,7 +2,7 @@ const Dockerode = require('dockerode');
 
 const docker = new Dockerode();
 exports.docker = docker;
-const logger = require('khala-logger').new('dockerode', process.env.deployment === 'debug' ? 4 : 2);
+const logger = require('khala-logger').new('dockerode', process.env.deployment === 'dev' ? 4 : 2);
 
 const sleep = async (ms) => new Promise(resolve => setTimeout(resolve, ms));
 /**
