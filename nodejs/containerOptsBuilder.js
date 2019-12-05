@@ -34,7 +34,7 @@
 			}
 		}
  */
-const logger = require('khala-logger').new('containerOptsBuilder');
+const logger = require('khala-logger/log4js').consoleLogger('containerOptsBuilder');
 
 class containerOptsBuilder {
 

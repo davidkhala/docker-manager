@@ -2,7 +2,7 @@ const Dockerode = require('dockerode');
 
 const docker = new Dockerode();
 exports.docker = docker;
-const logger = require('khala-logger').new('dockerode', process.env.deployment === 'dev' ? 4 : 2);
+const logger = require('khala-logger/log4js').consoleLogger('dockerode', process.env.deployment === 'dev' ? 5 : 4);
 
 const sleep = async (ms) => new Promise(resolve => setTimeout(resolve, ms));
 /**
@@ -50,7 +50,7 @@ exports.containerStart = async (createOptions) => {
 
 	try {
 		info = await container.inspect();
-		logger.info('container found', containerName, info.State.Status);
+		logger.debug('container found', containerName, info.State.Status);
 
 	} catch (err) {
 		if (err.reason === 'no such container' && err.statusCode === 404) {
@@ -117,7 +117,7 @@ exports.imageDelete = async (imageName) => {
 		return await image.remove({force: true});
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
-			logger.info(err.json.message, 'skip deleting');
+			logger.debug(err.json.message, 'skip deleting');
 		} else {
 			throw err;
 		}
@@ -129,7 +129,7 @@ exports.imageCreateIfNotExist = async (imageName) => {
 		return await image.inspect();
 	} catch (err) {
 		if (err.statusCode === 404 && err.reason === 'no such image') {
-			logger.info(err.json.message, 'pulling');
+			logger.debug(err.json.message, 'pulling');
 			await exports.imagePull(imageName);
 			return await image.inspect();
 		} else {
@@ -198,7 +198,8 @@ exports.networkCreateIfNotExist = async ({Name}, swarm) => {
 		const network = docker.getNetwork(Name);
 		const status = await network.inspect();
 		const {Scope, Driver, Containers} = status;
-		logger.info('network exist', Name, {
+		logger.info('network exist', Name);
+		logger.debug('network exist', {
 			Scope,
 			Driver,
 			Containers: Containers ? Object.values(Containers).map(({Name}) => Name) : undefined
