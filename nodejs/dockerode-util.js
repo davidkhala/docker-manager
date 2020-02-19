@@ -83,8 +83,8 @@ exports.containerStart = async (createOptions) => {
 };
 exports.containerExec = async ({container_name, Cmd}) => {
 	const container = docker.getContainer(container_name);
-	let exec = await container.exec({Cmd});
-	exec = await exec.start();
+	const exec = await container.exec({Cmd});
+	await exec.start();
 	return await exec.inspect();
 };
 // TODO how is options
