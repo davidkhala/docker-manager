@@ -1,6 +1,6 @@
 const DockerManager = require('../docker');
 const docker = new DockerManager({
-	host: 'ec2-54-169-64-23.ap-southeast-1.compute.amazonaws.com',
+	host: 'ec2-52-77-247-4.ap-southeast-1.compute.amazonaws.com',
 	username: 'ubuntu',
 	password: process.env.password
 });
