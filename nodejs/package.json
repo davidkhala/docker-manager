@@ -1,15 +1,12 @@
 {
   "name": "khala-dockerode",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "license": "Apache-2.0",
   "description": "dockerode utils",
-  "scripts": {
-    "test": "node test"
-  },
   "author": "davidliu  <david-khala@hotmail.com>",
   "repository": "davidkhala/docker-manager",
   "dependencies": {
-    "dockerode": "^3.0.2",
+    "dockerode": "^3.2.0",
     "khala-logger": "^0.2.0"
   }
 }

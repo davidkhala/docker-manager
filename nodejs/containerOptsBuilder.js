@@ -34,7 +34,6 @@
 			}
 		}
  */
-const logger = require('khala-logger/log4js').consoleLogger('containerOptsBuilder');
 
 class containerOptsBuilder {
 
@@ -43,11 +42,12 @@ class containerOptsBuilder {
 	 * @param {string} Image
 	 * @param {string[]} Cmd
 	 */
-	constructor(Image, Cmd) {
+	constructor(Image, Cmd,logger = console) {
 		this.opts = {
 			Image,
 			Cmd
 		};
+		this.logger = logger;
 	}
 
 	/**
@@ -73,8 +73,7 @@ class containerOptsBuilder {
 	 * @returns {containerOptsBuilder}
 	 */
 	setEnvObject(env) {
-		const Env = Object.entries(env).map(([key, value]) => `${key}=${value}`);
-		this.opts.Env = Env;
+		this.opts.Env = Object.entries(env).map(([key, value]) => `${key}=${value}`);
 		return this;
 	}
 
@@ -84,7 +83,7 @@ class containerOptsBuilder {
 	 */
 	setPortBind(localBind) {
 		const [HostPort, containerPort] = localBind.split(':');
-		logger.info(`container:${containerPort} => localhost:${HostPort}`);
+		this.logger.info(`container:${containerPort} => localhost:${HostPort}`);
 		if (!this.opts.ExposedPorts) {
 			this.opts.ExposedPorts = {};
 		}
