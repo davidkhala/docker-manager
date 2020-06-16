@@ -2,8 +2,5 @@
 # NOTE PLEASE run this without 'sudo', otherwise ENV $USER will be 'root' instead of current user.
 osVersion=`uname -s`
 if [[ $osVersion != "Darwin" ]]; then
-    sudo groupadd docker --force
-    sudo usermod -aG docker ${USER}
-# NOTE newgrp starts a subshell with the group you specified. So that line in your script will not finish until that subshell is done.
-    newgrp docker
+    sudo chmod 666 /var/run/docker.sock
 fi
