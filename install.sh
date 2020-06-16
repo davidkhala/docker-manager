@@ -7,15 +7,10 @@ for ((i = 2; i <= ${#}; i++)); do
 	remain_params="$remain_params $j"
 done
 
-dockerVersion=19
 composeVersion=1.22.0
 jqVersion=1.6
 while getopts "d:c:j:" shortname ${remain_params}; do
 	case ${shortname} in
-	d)
-		echo "docker-ce version (default: ${dockerVersion}) ==> $OPTARG"
-		dockerVersion="$OPTARG"
-		;;
 	c)
 		echo "docker-compose version (default: $composeVersion) ==> $OPTARG"
 		composeVersion="$OPTARG"
@@ -76,28 +71,16 @@ shipyard() {
 	fi
 }
 installDocker() {
-	if ! docker version | grep ${dockerVersion}; then
+	if ! docker version; then
 		if isMacOS; then
 			if ! docker version; then
 				brew cask install docker
 				open -a Docker
 			fi
-# 		elif isUbuntu20; then
-# 			sudo apt install docker.io
+		elif isUbuntu20; then
+			sudo apt -qq install -y docker.io
 		else
-			if ! curl --version; then
-				sudo apt-get install -y curl
-			fi
-			sudo apt-get install -y apt-transport-https
-			# install docker-ce
-			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-			sudo apt-key fingerprint 0EBFCD88
-			sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-			sudo apt-get update
-			if docker version; then
-				sudo service docker stop
-			fi
-			sudo apt-get -qq install -y --allow-downgrades docker-ce=${dockerVersion}*
+			sudo apt-get -qq install -y --allow-downgrades docker.io=18*
 		fi
 	fi
 }
