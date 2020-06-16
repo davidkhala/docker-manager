@@ -31,9 +31,19 @@ while getopts "d:c:j:" shortname ${remain_params}; do
 	esac
 done
 
+isMacOS() {
+	[[ $(uname) == "Darwin" ]]
+	return $?
+}
+
+isUbuntu20() {
+	lsb_release -d | grep "Ubuntu 20."
+	return $?
+}
+
 installjq() {
 	if ! jq --version | grep ${jqVersion}; then
-		if [[ $(uname) == "Darwin" ]]; then
+		if isMacOS; then
 			brew install jq
 		else
 			sudo apt update
@@ -45,7 +55,7 @@ installjq() {
 
 installCompose() {
 	if ! docker-compose version | grep ${composeVersion}; then
-		if [[ $(uname) == "Darwin" ]]; then
+		if isMacOS; then
 			echo There is no recommended way to install docker toolset via commands on MacOS,
 			echo more details: https://docs.docker.com/docker-for-mac/install/
 			exit 1
@@ -67,11 +77,13 @@ shipyard() {
 }
 installDocker() {
 	if ! docker version | grep ${dockerVersion}; then
-		if [[ $(uname) == "Darwin" ]]; then
+		if isMacOS; then
 			if ! docker version; then
 				brew cask install docker
 				open -a Docker
 			fi
+		elif isUbuntu20; then
+			sudo apt install docker.io
 		else
 			if ! curl --version; then
 				sudo apt-get install -y curl
