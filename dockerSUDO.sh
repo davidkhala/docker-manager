@@ -3,8 +3,7 @@
 osVersion=`uname -s`
 if [[ $osVersion != "Darwin" ]]; then
     sudo groupadd docker --force
-    sudo gpasswd -a $USER docker
+    sudo usermod -aG docker ${USER}
 # NOTE newgrp starts a subshell with the group you specified. So that line in your script will not finish until that subshell is done.
     newgrp docker
-    # TODO: another solution: sudo usermod -aG docker $(whoami)
 fi
