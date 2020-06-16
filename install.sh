@@ -82,8 +82,8 @@ installDocker() {
 				brew cask install docker
 				open -a Docker
 			fi
-		elif isUbuntu20; then
-			sudo apt install docker.io
+# 		elif isUbuntu20; then
+# 			sudo apt install docker.io
 		else
 			if ! curl --version; then
 				sudo apt-get install -y curl
