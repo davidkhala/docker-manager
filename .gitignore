@@ -1,4 +1,5 @@
-/.idea/*
-/nodejs/node_modules
+.idea
+.vscode
+node_modules
 /golang/vendor
 package-lock.json
