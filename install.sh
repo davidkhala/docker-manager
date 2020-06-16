@@ -47,7 +47,7 @@ installjq() {
 			brew install jq
 		else
 			sudo apt update
-			sudo apt -qq install -y jq*
+			sudo apt -qq install -y jq
 		fi
 
 	fi
