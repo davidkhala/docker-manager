@@ -9,7 +9,7 @@ done
 
 dockerVersion=19
 composeVersion=1.22.0
-jqVersion=1.5
+jqVersion=1.6
 while getopts "d:c:j:" shortname ${remain_params}; do
 	case ${shortname} in
 	d)
@@ -36,8 +36,8 @@ installjq() {
 		if [[ $(uname) == "Darwin" ]]; then
 			brew install jq
 		else
-			sudo apt-get update
-			sudo apt-get -qq install -y jq=${jqVersion}*
+			sudo apt update
+			sudo apt -qq install -y jq*
 		fi
 
 	fi
