@@ -5,7 +5,7 @@ const {ContainerStatus} = require('./constants');
 class DockerManager {
 
 	constructor(opts, logger = console) {
-		if (!opts.protocol && opts.host) {
+		if (opts && !opts.protocol && opts.host) {
 			opts.protocol = 'ssh';
 		}
 

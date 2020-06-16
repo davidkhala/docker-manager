@@ -8,5 +8,8 @@
   "dependencies": {
     "dockerode": "^3.2.0",
     "khala-logger": "^0.2.0"
+  },
+  "devDependencies": {
+    "mocha": "^8.0.1"
   }
 }

@@ -7,6 +7,7 @@ matrix:
       install:
         - cd nodejs; npm install ; cd -
       script:
-        - node nodejs/test
+        - cd nodejs
+        - mocha
 
 
