@@ -123,11 +123,10 @@ class DockerManager {
 	/**
 	 *
 	 * @param {containerOpts} createOptions
-	 * @param {boolean} throwIfImageNotFound
-	 * @param {number} retryTimes
+	 * @param {number} [retryTimes]
 	 * @returns {Promise<*>}
 	 */
-	async containerStart(createOptions, throwIfImageNotFound, retryTimes) {
+	async containerStart(createOptions, retryTimes = 1) {
 		const {name: containerName, Image: imageName} = createOptions;
 		let container = this.docker.getContainer(containerName);
 		let info;
@@ -139,9 +138,6 @@ class DockerManager {
 		} catch (err) {
 			if (err.reason === ContainerNotFound && err.statusCode === 404) {
 				this.logger.info(err.json.message, 'creating');
-				if (!throwIfImageNotFound) {
-					await this.imageCreateIfNotExist(imageName);
-				}
 				container = await this.docker.createContainer(createOptions);
 				info = await container.inspect();
 			} else {

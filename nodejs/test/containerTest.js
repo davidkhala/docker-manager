@@ -11,6 +11,9 @@ describe('container test', () => {
 	const dockerManager = new DockerManager(undefined, logger);
 	const imageName = 'hello-world';
 	const containerName = imageName;
+	before(async () => {
+		await dockerManager.imagePull(imageName);
+	});
 	it('container start:restart', async () => {
 		const containerOptsBuilder = new ContainerOptsBuilder(imageName, []);
 		containerOptsBuilder.setName(containerName);
@@ -20,6 +23,7 @@ describe('container test', () => {
 	});
 	after(async () => {
 		await dockerManager.containerDelete(containerName);
+		await dockerManager.imageDelete(imageName);
 	});
 
 });
