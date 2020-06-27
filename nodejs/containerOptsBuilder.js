@@ -4,15 +4,15 @@
  * @property {string[]} Env
  * @property {string} Cmd
  * @property {string} Image
- * @property {object} ExposedPorts
+ * @property {Object} ExposedPorts
  * sample: {
 			'7054': {}
 		},
- * @property {object} Volumes
+ * @property {Object} Volumes
  * sample: {
 			[containerPath]: {}
 		};
- * @property {object} Hostconfig
+ * @property {Object} Hostconfig
  * sample: {
             Binds:[
                 `${hostPath}:${containerPath}`
@@ -26,7 +26,7 @@
 			}
 
 		},
- * @property {object} NetworkingConfig: {
+ * @property {Object} NetworkingConfig: {
 			EndpointsConfig: {
 				[network]: {
 					Aliases: [container_name]
@@ -41,8 +41,9 @@ class containerOptsBuilder {
 	 *
 	 * @param {string} Image
 	 * @param {string[]} Cmd
+	 * @param logger
 	 */
-	constructor(Image, Cmd,logger = console) {
+	constructor(Image, Cmd, logger = console) {
 		this.opts = {
 			Image,
 			Cmd

@@ -110,18 +110,24 @@ class DockerManager {
 		}
 	};
 
+	/**
+	 * @param {string} containerName
+	 */
 	async containerRestart(containerName) {
 		const container = this.docker.getContainer(containerName);
-		await container.inspect();
+		const containInfo = await container.inspect();
+		this.logger.debug('restart container', containerName, containInfo.State.Status);
 		await container.restart();
 	}
 
 	/**
 	 *
 	 * @param {containerOpts} createOptions
+	 * @param {boolean} throwIfImageNotFound
+	 * @param {number} retryTimes
 	 * @returns {Promise<*>}
 	 */
-	async containerStart(createOptions) {
+	async containerStart(createOptions, throwIfImageNotFound, retryTimes) {
 		const {name: containerName, Image: imageName} = createOptions;
 		let container = this.docker.getContainer(containerName);
 		let info;
@@ -133,7 +139,9 @@ class DockerManager {
 		} catch (err) {
 			if (err.reason === ContainerNotFound && err.statusCode === 404) {
 				this.logger.info(err.json.message, 'creating');
-				await this.imageCreateIfNotExist(imageName);
+				if (!throwIfImageNotFound) {
+					await this.imageCreateIfNotExist(imageName);
+				}
 				container = await this.docker.createContainer(createOptions);
 				info = await container.inspect();
 			} else {
@@ -155,7 +163,7 @@ class DockerManager {
 			}
 		};
 		if ([exited, created].includes(info.State.Status)) {
-			await start(container, 1);
+			await start(container, retryTimes);
 			info = await container.inspect();
 		}
 		return info;
@@ -179,7 +187,6 @@ class DockerManager {
 	};
 
 	async containerList({all, network, status} = {all: true}) {
-		// status=(created 	restarting 	running 	paused 	exited 	dead)
 		const filters = {
 			network: network ? [network] : undefined,
 			status: status ? [status] : undefined
