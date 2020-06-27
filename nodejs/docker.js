@@ -1,6 +1,8 @@
 const Dockerode = require('dockerode');
 
-const {ContainerStatus} = require('./constants');
+const {ContainerStatus, Reason} = require('./constants');
+const {exited, created, dead} = ContainerStatus;
+const {ContainerNotFound, ImageNotFound, NetworkNotFound, VolumeNotFound} = Reason;
 
 class DockerManager {
 
@@ -39,7 +41,7 @@ class DockerManager {
 			await network.inspect();
 			return await network.remove();
 		} catch (err) {
-			if (err.statusCode === 404 && err.reason === 'no such network') {
+			if (err.statusCode === 404 && err.reason === NetworkNotFound) {
 				this.logger.info(err.json.message, 'deleting skipped');
 			} else {
 				throw err;
@@ -74,7 +76,7 @@ class DockerManager {
 			}
 			return status;
 		} catch (err) {
-			if (err.statusCode === 404 && err.reason === 'no such network') {
+			if (err.statusCode === 404 && err.reason === NetworkNotFound) {
 				this.logger.info(err.json.message, 'creating');
 				return await this.networkCreate({Name}, swarm);
 			} else {
@@ -94,13 +96,13 @@ class DockerManager {
 			const containInfo = await container.inspect();
 			const currentStatus = containInfo.State.Status;
 			this.logger.debug('delete container', containerName, currentStatus);
-			if (![ContainerStatus.exited, ContainerStatus.created, ContainerStatus.dead].includes(currentStatus)) {
+			if (![exited, created, dead].includes(currentStatus)) {
 				await container.kill();
 			}
 			await container.remove();
 			return;
 		} catch (err) {
-			if (err.statusCode === 404 && err.reason === 'no such container') {
+			if (err.statusCode === 404 && err.reason === ContainerNotFound) {
 				this.logger.info(err.json.message, 'deleting skipped');
 			} else {
 				throw err;
@@ -129,7 +131,7 @@ class DockerManager {
 			this.logger.debug('container found', containerName, info.State.Status);
 
 		} catch (err) {
-			if (err.reason === 'no such container' && err.statusCode === 404) {
+			if (err.reason === ContainerNotFound && err.statusCode === 404) {
 				this.logger.info(err.json.message, 'creating');
 				await this.imageCreateIfNotExist(imageName);
 				container = await this.docker.createContainer(createOptions);
@@ -152,7 +154,7 @@ class DockerManager {
 				}
 			}
 		};
-		if (['exited', 'created'].includes(info.State.Status)) {
+		if ([exited, created].includes(info.State.Status)) {
 			await start(container, 1);
 			info = await container.inspect();
 		}
@@ -201,7 +203,7 @@ class DockerManager {
 			this.logger.info('delete image', imageInfo.RepoTags);
 			return await image.remove({force: true});
 		} catch (err) {
-			if (err.statusCode === 404 && err.reason === 'no such image') {
+			if (err.statusCode === 404 && err.reason === ImageNotFound) {
 				this.logger.debug(err.json.message, 'skip deleting');
 			} else {
 				throw err;
@@ -214,7 +216,7 @@ class DockerManager {
 		try {
 			return await image.inspect();
 		} catch (err) {
-			if (err.statusCode === 404 && err.reason === 'no such image') {
+			if (err.statusCode === 404 && err.reason === ImageNotFound) {
 				this.logger.debug(err.json.message, 'pulling');
 				await this.imagePull(imageName);
 				return await image.inspect();
@@ -264,7 +266,7 @@ class DockerManager {
 			this.logger.debug('delete volume', info);
 			return await volume.remove();
 		} catch (err) {
-			if (err.statusCode === 404 && err.reason === 'no such volume') {
+			if (err.statusCode === 404 && err.reason === VolumeNotFound) {
 				this.logger.info(err.json.message, 'delete skipped');
 			} else {
 				throw err;

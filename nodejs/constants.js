@@ -11,4 +11,17 @@ const ContainerStatus = {
 	exited: 'exited',
 	dead: 'dead'
 };
-exports.ContainerStatus = ContainerStatus;
+/**
+ *
+ * @enum {string}
+ */
+const Reason = {
+	ContainerNotFound: 'no such container',
+	NetworkNotFound: 'no such network',
+	ImageNotFound: 'no such image',
+	VolumeNotFound: 'no such volume'
+};
+module.exports = {
+	ContainerStatus,
+	Reason,
+};

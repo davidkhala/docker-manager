@@ -1,6 +1,6 @@
+const logger = require('khala-logger/log4js').consoleLogger('test:docker');
+const DockerManager = require('../docker');
 describe('docker image', () => {
-	const DockerManager = require('../docker');
-	const logger = require('khala-logger/log4js').consoleLogger('test:docker');
 	const dockerManager = new DockerManager(undefined, logger);
 	it('pull hello-world', async function () {
 		this.timeout(30000);
