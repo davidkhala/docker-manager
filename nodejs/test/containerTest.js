@@ -11,11 +11,12 @@ describe('container test', () => {
 	const dockerManager = new DockerManager(undefined, logger);
 	const imageName = 'hello-world';
 	const containerName = imageName;
-	before(async function() {
+	before(async function () {
 		this.timeout(30000);
 		await dockerManager.imagePull(imageName);
 	});
-	it('container start:restart', async () => {
+	it('container start:restart', async function () {
+		this.timeout(30000);
 		const containerOptsBuilder = new ContainerOptsBuilder(imageName, []);
 		containerOptsBuilder.setName(containerName);
 		const opts = containerOptsBuilder.build();
