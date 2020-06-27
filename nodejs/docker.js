@@ -24,10 +24,6 @@ class DockerManager {
 		};
 	}
 
-	async imageList({all} = {}) {
-		return this.docker.listImages({all});
-	}
-
 	async info() {
 		return this.docker.info();
 	}
@@ -111,6 +107,12 @@ class DockerManager {
 			}
 		}
 	};
+
+	async containerRestart(containerName) {
+		const container = this.docker.getContainer(containerName);
+		await container.inspect();
+		await container.restart();
+	}
 
 	/**
 	 *

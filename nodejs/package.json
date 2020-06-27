@@ -5,6 +5,9 @@
   "description": "dockerode utils",
   "author": "davidliu  <david-khala@hotmail.com>",
   "repository": "davidkhala/docker-manager",
+  "scripts": {
+    "test": "mocha test"
+  },
   "dependencies": {
     "dockerode": "^3.2.0",
     "khala-logger": "^0.2.0"

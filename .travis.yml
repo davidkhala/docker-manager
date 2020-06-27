@@ -2,12 +2,13 @@ matrix:
   include:
     - language: node_js
       node_js:
-        - "10"
+        - "12"
       dist: bionic
       install:
+        - ./install.sh
         - cd nodejs; npm install ; cd -
       script:
         - cd nodejs
-        - mocha
+        - npm test
 
 
