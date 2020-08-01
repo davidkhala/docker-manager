@@ -79,6 +79,15 @@ class containerOptsBuilder {
 	}
 
 	/**
+	 * Expose a port used within docker network only
+	 * @param {string} containerPort
+	 */
+	setExposedPort(containerPort) {
+		this.opts.ExposedPorts[containerPort] = {};
+		return this;
+	}
+
+	/**
 	 * @param {string} localBind `8051:7051`
 	 * @returns {containerOptsBuilder}
 	 */
@@ -96,7 +105,7 @@ class containerOptsBuilder {
 		}
 		this.opts.ExposedPorts[containerPort] = {};
 		this.opts.Hostconfig.PortBindings[containerPort] = [{
-			HostPort: HostPort.toString()
+			HostPort
 		}];
 
 		return this;
