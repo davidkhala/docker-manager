@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 set -e
-fcn=$1
-remain_params=""
-for ((i = 2; i <= ${#}; i++)); do
-	j=${!i}
-	remain_params="$remain_params $j"
-done
 
 composeVersion=1.22.0
 jqVersion=1.6
@@ -84,8 +78,8 @@ installDocker() {
 		fi
 	fi
 }
-if [[ -n "$fcn" ]]; then
-	${fcn} ${remain_params}
+if [[ -n "$1" ]]; then
+	$@
 else
 	installDocker
 	installjq
