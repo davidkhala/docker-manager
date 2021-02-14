@@ -9,7 +9,5 @@ if [[ $osVersion != "Darwin" ]]; then
     sudo groupadd docker
     sudo usermod -aG docker $USER
     newgrp docker
-    ## Reference: https://docs.docker.com/engine/install/linux-postinstall/
-    
     
 fi
