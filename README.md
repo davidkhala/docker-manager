@@ -20,6 +20,12 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
 - get container log file location: `./bash/docker.sh logPath <containerName>`
 - after `docker login`: `WARNING! Your password will be stored unencrypted in /home/${USER}/.docker/config.json.`
 
+
+## Caveats
+- [Docker Userland proxy is not any good](https://github.com/moby/moby/issues/14856)
+    - [heavy CPU resource waste](https://franckpachot.medium.com/high-cpu-usage-in-docker-proxy-with-chatty-database-application-disable-userland-proxy-415ffa064955)
+    - Use case1: When a container connected to another Docker network tries to reach the service (Docker is blocking direct communication between Docker networks);
+    - Use case2： When a local process tries to reach the service through loopback interface.
 ## TODO
 
 - do not re-create wheels, see what fabric using:
@@ -28,5 +34,4 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
       name = "github.com/fsouza/go-dockerclient"
       version = "1.2.0"
   ```
-- [issue][docker][occasional]driver failed programming external connectivity on endpoint peer1.MCC (b8b9151a3542d8b632c3d633d115c9fb8ed69aabf2a868ca33bceda9fd02f92e): Bind for 0.0.0.0:7151 failed: port is already allocated
 - containerSolidify: container.commit
