@@ -50,7 +50,7 @@ installCompose() {
 			exit 1
 		fi
 		if pip --version ; then 
-			sudo pip install docker-compose
+			pip install docker-compose
 		else
 			sudo curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
 			sudo chmod +x /usr/local/bin/docker-compose
