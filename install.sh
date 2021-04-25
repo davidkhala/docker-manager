@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-composeVersion=1.22.0
+composeVersion=1.29.1
 jqVersion=1.6
 while getopts "d:c:j:" shortname ${remain_params}; do
 	case ${shortname} in
@@ -45,12 +45,17 @@ installjq() {
 installCompose() {
 	if ! docker-compose version | grep ${composeVersion}; then
 		if isMacOS; then
-			echo There is no recommended way to install docker toolset via commands on MacOS,
-			echo more details: https://docs.docker.com/docker-for-mac/install/
+			echo "Docker Desktop for Mac includes Compose along with other Docker apps, so Mac users do not need to install Compose separately."
+			echo "More details: https://docs.docker.com/docker-for-mac/install/"
 			exit 1
 		fi
-		sudo curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-		sudo chmod +x /usr/local/bin/docker-compose
+		if pip --version ; then 
+			sudo pip install docker-compose
+		else
+			sudo curl -L https://github.com/docker/compose/releases/download/${composeVersion}/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+			sudo chmod +x /usr/local/bin/docker-compose
+		fi
+		
 	fi
 }
 
