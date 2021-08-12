@@ -70,18 +70,19 @@ shipyard() {
 	fi
 }
 installDocker() {
-	if ! docker version; then
-		if isMacOS; then
-			if ! docker version; then
-				brew cask install docker
-				open -a Docker
-			fi
-		elif isUbuntu20; then
-			sudo apt -qq install -y docker.io
-		else
-			sudo apt-get -qq install -y --allow-downgrades docker.io=18*
-		fi
-	fi
+	curl -sSL https://get.docker.com/ | sh
+# 	if ! docker version; then
+# 		if isMacOS; then
+# 			if ! docker version; then
+# 				brew cask install docker
+# 				open -a Docker
+# 			fi
+# 		elif isUbuntu20; then
+# 			sudo apt -qq install -y docker.io
+# 		else
+# 			sudo apt-get -qq install -y --allow-downgrades docker.io=18*
+# 		fi
+# 	fi
 }
 if [[ -n "$1" ]]; then
 	$@
