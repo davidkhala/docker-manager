@@ -1,14 +1,9 @@
 # docker-manager
-[![Build Status](https://travis-ci.com/davidkhala/docker-manager.svg?branch=master)](https://travis-ci.com/davidkhala/docker-manager)
 
 ## Installation
 
-- 安装 docker-ce [Ubuntu|MacOS]: `./install.sh installDocker`
-- 从 github 上下载安装 docker-compose [Ubuntu]: `./install.sh installCompose`
-- 安装 jq [Ubuntu|MacOS]: `./install.sh installjq`
+安装 docker-ce [Ubuntu|MacOS]: `./install.sh Docker`
 
-如果脚本下载或者 docker pull image 镜像拉取出现问题，也可以在这里寻找适合你环境的解决方案
-https://get.daocloud.io/
 
 ### docker user grant
 
