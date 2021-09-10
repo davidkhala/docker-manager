@@ -8,7 +8,7 @@
 ### docker user grant
 
 `dockerSUDO.sh` :
-this script help to make docker command runnable without `sudo` prefix (Ubuntu only)
+this script help to make docker command runnable without `sudo` prefix
 
 ## Notes
 
@@ -21,12 +21,3 @@ this script help to make docker command runnable without `sudo` prefix (Ubuntu o
     - [heavy CPU resource waste](https://franckpachot.medium.com/high-cpu-usage-in-docker-proxy-with-chatty-database-application-disable-userland-proxy-415ffa064955)
     - Use case1: When a container connected to another Docker network tries to reach the service (Docker is blocking direct communication between Docker networks);
     - Use case2： When a local process tries to reach the service through loopback interface.
-## TODO
-
-- do not re-create wheels, see what fabric using:
-  ```
-  [[constraint]]
-      name = "github.com/fsouza/go-dockerclient"
-      version = "1.2.0"
-  ```
-- containerSolidify: container.commit
