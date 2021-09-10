@@ -1,1 +1,1 @@
-docker login registry-1.docker.io
+docker login registry.hub.docker.com
