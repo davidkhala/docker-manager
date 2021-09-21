@@ -8,5 +8,11 @@ describe('remote docker', () => {
 		const info = await docker.info();
 		console.log(info);
 	});
+	it.skip('podman', async () => {
+		const socketPath = '/run/podman/podman.sock'
+		const docker = new DockerManager({socketPath})
+		const info = await docker.ping();
+		console.log(info);
+	})
 });
 

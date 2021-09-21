@@ -4,8 +4,21 @@ const {ContainerStatus, Reason} = require('./constants');
 const {exited, created, dead} = ContainerStatus;
 const {ContainerNotFound, ImageNotFound, NetworkNotFound, VolumeNotFound} = Reason;
 
+/**
+ * @typedef {Object} DockerodeOpts
+ * @property {string} [socketPath]
+ * @property {string} [protocol]
+ * @property {string} [host]
+ * @property {number} [port]
+ */
+
 class DockerManager {
 
+	/**
+	 *
+	 * @param {DockerodeOpts} [opts]
+	 * @param [logger]
+	 */
 	constructor(opts, logger = console) {
 		if (opts && !opts.protocol && opts.host) {
 			opts.protocol = 'ssh';

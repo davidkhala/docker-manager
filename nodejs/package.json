@@ -1,6 +1,6 @@
 {
-  "name": "khala-dockerode",
-  "version": "1.0.2",
+  "name": "@davidkhala/dockerode",
+  "version": "1.0.3",
   "license": "Apache-2.0",
   "description": "dockerode utils",
   "author": "davidliu  <david-khala@hotmail.com>",
@@ -9,10 +9,10 @@
     "test": "mocha test"
   },
   "dependencies": {
-    "dockerode": "^3.2.1",
-    "khala-logger": "^0.2.0"
+    "dockerode": "latest"
   },
   "devDependencies": {
-    "mocha": "^8.0.1"
+    "mocha": "latest",
+    "khala-logger": "latest"
   }
 }
