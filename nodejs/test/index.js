@@ -5,7 +5,7 @@ describe('remote docker', () => {
 
 	it('local', async () => {
 		const docker = new DockerManager();
-		const info = await docker.info();
+		const info = await docker.ping();
 		console.log(info);
 	});
 	it.skip('podman', async () => {
