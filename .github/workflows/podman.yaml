@@ -1,3 +1,4 @@
+## "GitHub's Ubuntu action runners come with Podman preinstalled". See in https://github.com/redhat-actions/podman-login
 name: podman test
 
 on:
@@ -17,8 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Log in to ghcr.io
-        uses: redhat-actions/podman-login@v1
-        with:
+      uses: redhat-actions/podman-login@v1
+      with:
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
           registry: ${{ env.IMAGE_REGISTRY }}
