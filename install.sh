@@ -4,7 +4,11 @@ set -e
 diagnose() {
 	ls -al /var/run/docker.sock
 }
-
+system-service() {
+	# On Debian and Ubuntu, the Docker service is configured to start on boot by default. 
+	sudo systemctl enable docker.service
+ 	sudo systemctl enable containerd.service
+}
 Docker() {
 	curl -sSL https://get.docker.com/ | sh
 }
