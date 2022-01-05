@@ -1,11 +1,5 @@
 #!/bin/bash
 
-fcn=$1
-remain_params=""
-for ((i = 2; i <= $#; i++)); do
-	j=${!i}
-	remain_params="$remain_params $j"
-done
 viewContainerPort() {
 	CMD="docker container port $1 $2"
 	if [[ -n "$2" ]]; then
@@ -39,4 +33,4 @@ logPath() {
 	local containerID=$(getID $1)
 	echo /var/lib/docker/containers/${containerID}/${containerID}-json.log
 }
-${fcn} ${remain_params}
+$@
