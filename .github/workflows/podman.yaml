@@ -23,7 +23,6 @@ jobs:
           username: ${{ env.REGISTRY_USER }}
           password: ${{ env.REGISTRY_PASSWORD }}
           registry: ${{ env.IMAGE_REGISTRY }}
-    - run: alias docker=podman
     - uses: actions/checkout@v2
     - run: npm i
     - run: npm run podman-test

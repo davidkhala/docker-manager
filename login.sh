@@ -4,8 +4,12 @@ docker-hub() {
 ocr() {
     docker login container-registry.oracle.com
 }
-oci-cr() {
-    # TODO
-    https://docs.oracle.com/en-us/iaas/Content/Registry/Tasks/registrypushingimagesusingthedockercli.htm
+ocir() {
+    local region_key=$1
+    local tenancy_namespace=$2
+    local username=$3
+    echo Please use auth_token as password...
+    docker login $region_key.ocir.io --username $tenancy_namespace/$username
+
 }
 $@
