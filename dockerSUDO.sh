@@ -6,6 +6,7 @@ curl -fsSL https://get.docker.com/rootless | sh
 export PATH=/usr/bin:$PATH
 export DOCKER_HOST=unix:///run/user/1000/docker.sock
 
+sudo groupadd docker
 sudo usermod -aG docker $USER
 
 
