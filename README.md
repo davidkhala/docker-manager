@@ -5,7 +5,7 @@
 安装 docker-ce [Ubuntu|MacOS]: `./install.sh Docker`
 
 
-### docker user grant
+### rootless docker
 
 `dockerSUDO.sh` :
 this script help to make docker command runnable without `sudo` prefix
@@ -13,7 +13,7 @@ this script help to make docker command runnable without `sudo` prefix
 ## Notes
 
 - get container log file location: `./bash/docker.sh logPath <containerName>`
-- after `docker login`: `WARNING! Your password will be stored unencrypted in /home/${USER}/.docker/config.json.`
+
 
 
 ## Caveats
