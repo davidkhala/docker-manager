@@ -4,8 +4,8 @@ ocir() {
     # The same docker push will auto-targeting to compartment than root-compartment
 
 
-    local tenancy_namespace=${3:-cn9yc2hk0gzg}
-    local region_key=${2:-'ap-singapore-1'}
+    local tenancy_namespace=${tenancy_namespace:-cn9yc2hk0gzg}
+    local region_key=${region_key:-'ap-singapore-1'}
     local image=$1
 
     docker tag $image $region_key.ocir.io/$tenancy_namespace/$image
