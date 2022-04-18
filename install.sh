@@ -6,9 +6,8 @@ diagnose() {
 }
 system-service() {
 	# On Debian and Ubuntu, the Docker service is configured to start on boot by default. 
-	sudo systemctl enable docker.service
- 	sudo systemctl enable containerd.service
-	sudo systemctl start docker.service
+ 	sudo systemctl enable --now containerd.service
+	sudo systemctl enable --now docker.service
 }
 Docker() {
 	curl -sSL https://get.docker.com/ | sh
