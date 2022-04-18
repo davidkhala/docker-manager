@@ -10,6 +10,4 @@
 `dockerSUDO.sh` :
 this script help to make docker command runnable without `sudo` prefix
 
-## Notes
 
-- get container log file location: `./bash/docker.sh logPath <containerName>`
