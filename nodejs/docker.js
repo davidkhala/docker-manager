@@ -1,6 +1,6 @@
-const Dockerode = require('dockerode');
+import Dockerode from 'dockerode';
 
-const { ContainerStatus, Reason } = require('./constants');
+import { ContainerStatus, Reason } from './constants.js';
 const { exited, created, dead } = ContainerStatus;
 const { ContainerNotFound, ImageNotFound, NetworkNotFound, VolumeNotFound } = Reason;
 
@@ -12,7 +12,7 @@ const { ContainerNotFound, ImageNotFound, NetworkNotFound, VolumeNotFound } = Re
  * @property {number} [port]
  */
 
-class DockerManager {
+export default class DockerManager {
 
 	/**
 	 *
@@ -290,6 +290,3 @@ class DockerManager {
 		}
 	};
 }
-
-
-module.exports = DockerManager;

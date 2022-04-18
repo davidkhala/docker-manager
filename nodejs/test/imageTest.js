@@ -1,5 +1,6 @@
-const logger = require('khala-logger/log4js').consoleLogger('test:docker');
-const DockerManager = require('../docker');
+import {consoleLogger} from 'khala-logger/log4js'
+const logger = consoleLogger('test:docker');
+import DockerManager from '../docker.js';
 describe('docker image', () => {
 	const dockerManager = new DockerManager(undefined, logger);
 	it('pull hello-world', async function () {

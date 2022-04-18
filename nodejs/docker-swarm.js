@@ -1,10 +1,48 @@
-const DockerManager = require('./docker');
-const {nodeSelf} = require('./dockerCmd');
+import DockerManager from './docker.js';
+import {execSync} from '@davidkhala/light/devOps.js'
+import {systemInfo} from './dockerCmd.js'
+export const swarmWorkerInfo = () => {
+	const {Swarm} = JSON.parse(systemInfo());
+	return Swarm;
+};
+export const nodeInspect = (id) => {
+	const stdout = execSync(`docker node inspect ${id}`);
+
+	return JSON.parse(stdout)[0];
+};
+export const nodeSelf = (pretty) => {
+	const info = nodeInspect('self');
+	if (pretty) {
+		const {
+			ID, Status, ManagerStatus,
+			Description: {Hostname, Platform, Engine: {EngineVersion}},
+		} = info;
+		return {ID, Hostname, Platform, EngineVersion, Status, ManagerStatus};
+	}
+	return info;
+};
+export const joinToken =(role = 'manager') => {
+	const cmd = `docker swarm join-token ${role} | grep docker`;
+	const stdout = execSync(cmd);
+
+	return stdout.trim();
+};
+
+export const advertiseAddr = (fullToken) => {
+	if (!fullToken) {
+		fullToken = joinToken();
+	}
+	const address = fullToken.split(' ')[5];
+	const token = fullToken.split(' ')[4];
+	const addressSlices = address.split(':');
+	return {address: addressSlices[0], token, port: addressSlices[1], AdvertiseAddr: address};
+};
+
 /**
  * https://docs.docker.com/engine/swarm/how-swarm-mode-works/swarm-task-states/
  * @enum
  */
-const TaskStatus = {
+export const TaskStatus = {
 	NEW: 'NEW',         //The task was initialized.
 	PENDING: 'PENDING', //Resources for the task were allocated.
 	ASSIGNED: 'ASSIGNED',//Docker assigned the task to nodes.
@@ -22,13 +60,13 @@ const TaskStatus = {
 /**
  * @enum
  */
-const NodeStatus = {
+export const NodeStatus = {
 	down: 'down'
 };
 
-class DockerSwarmManager extends DockerManager {
+export class DockerSwarmManager extends DockerManager {
 
-	constructor(opts, logger =) {
+	constructor(opts, logger = console) {
 		super(opts, logger);
 
 	}
@@ -281,7 +319,7 @@ class DockerSwarmManager extends DockerManager {
 			if (err.statusCode === 503) {
 				if (err.json.message.includes('This node is already part of a swarm.')) {
 					// check if it is same swarm
-					const {result, swarm} = await exports.swarmBelongs(undefined, JoinToken);
+					const {result, swarm} = await this.swarmBelongs(undefined, JoinToken);
 					if (!result) {
 						if (swarm) {
 							throw Error(`belongs to another swarm ${swarm.ID}`);
@@ -335,7 +373,8 @@ class DockerSwarmManager extends DockerManager {
 			}
 		}
 	}
-	async serviceCreateIfNotExist ({Image, Name, Cmd, network, Constraints, volumes = [], ports = [], Env, Aliases}) {
+
+	async serviceCreateIfNotExist({Image, Name, Cmd, network, Constraints, volumes = [], ports = [], Env, Aliases}) {
 		try {
 			const service = this.docker.getService(Name);
 			const info = await service.inspect();
@@ -441,6 +480,3 @@ class DockerSwarmManager extends DockerManager {
 		return DockerSwarmManager.constraintsBuilder({ID});
 	}
 }
-
-
-module.exports = DockerSwarmManager;

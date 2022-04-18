@@ -1,6 +1,6 @@
-const os = require('os');
+import os from 'os';
 
-const ips = () => {
+export const ips = () => {
 	const allInterfaces = os.networkInterfaces();
 	const results = [];
 	for (const interfaceName in allInterfaces) {
@@ -16,8 +16,7 @@ const ips = () => {
 	}
 	return results;
 };
-exports.ips = ips;
-exports.ip = () => {
+export const ip = () => {
 	const ipList = ips();
 	if (ipList.length === 1) {
 		return ipList[0];

@@ -2,7 +2,7 @@
  *
  * @enum {string}
  */
-const ContainerStatus = {
+export const ContainerStatus = {
 	created: 'created',
 	restarting: 'restarting',
 	running: 'running',
@@ -15,13 +15,9 @@ const ContainerStatus = {
  *
  * @enum {string}
  */
-const Reason = {
+export const Reason = {
 	ContainerNotFound: 'no such container',
 	NetworkNotFound: 'no such network',
 	ImageNotFound: 'no such image',
 	VolumeNotFound: 'no such volume'
-};
-module.exports = {
-	ContainerStatus,
-	Reason,
 };

@@ -1,6 +1,7 @@
-const logger = require('khala-logger/log4js').consoleLogger('test:docker');
-const DockerManager = require('../docker');
-const ContainerOptsBuilder = require('../containerOptsBuilder');
+import {consoleLogger} from 'khala-logger/log4js'
+import DockerManager from '../docker.js';
+const logger = consoleLogger('test:docker');
+import ContainerOptsBuilder from '../containerOptsBuilder.js';
 
 describe('container Opts builder', () => {
 	it('constructor', () => {

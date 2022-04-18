@@ -1,5 +1,5 @@
-const DockerManager = require('../docker');
-const assert = require('assert')
+import DockerManager from '../docker.js';
+import assert from 'assert'
 
 describe('remote docker', () => {
 

@@ -35,7 +35,7 @@
 		}
  */
 
-class containerOptsBuilder {
+export default class containerOptsBuilder {
 
 	/**
 	 *
@@ -159,7 +159,6 @@ class containerOptsBuilder {
 	}
 }
 
-module.exports = containerOptsBuilder;
 
 
 

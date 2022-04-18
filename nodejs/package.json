@@ -10,10 +10,12 @@
     "podman-test": "mocha test/podman"
   },
   "dependencies": {
-    "dockerode": "latest"
+    "dockerode": "latest",
+    "@davidkhala/light": "latest"
   },
   "devDependencies": {
     "mocha": "latest",
     "khala-logger": "latest"
-  }
+  },
+  "type": "module"
 }
