@@ -46,7 +46,8 @@ export default class containerOptsBuilder {
 	constructor(Image, Cmd, logger = console) {
 		this.opts = {
 			Image,
-			Cmd
+			Cmd,
+			Hostconfig: {}
 		};
 		this.logger = logger;
 	}
@@ -58,6 +59,15 @@ export default class containerOptsBuilder {
 	setName(name) {
 		this.opts.name = name;
 		return this;
+	}
+
+	setHostGateway() {
+		if (!this.opts.Hostconfig.ExtraHosts) {
+			this.opts.Hostconfig.ExtraHosts = []
+		}
+		this.opts.Hostconfig.ExtraHosts.push(
+			"host.docker.internal:host-gateway",// docker host auto-binding
+		)
 	}
 
 	/**
@@ -97,13 +107,7 @@ export default class containerOptsBuilder {
 		if (!this.opts.ExposedPorts) {
 			this.opts.ExposedPorts = {};
 		}
-		if (!this.opts.Hostconfig) {
-			this.opts.Hostconfig = {
-				ExtraHosts: [
-					"host.docker.internal:host-gateway",// docker host auto-binding
-				]
-			};
-		}
+
 		if (!this.opts.Hostconfig.PortBindings) {
 			this.opts.Hostconfig.PortBindings = {};
 		}
@@ -142,9 +146,6 @@ export default class containerOptsBuilder {
 	setVolume(volumeName, containerPath) {
 		if (!this.opts.Volumes) {
 			this.opts.Volumes = {};
-		}
-		if (!this.opts.Hostconfig) {
-			this.opts.Hostconfig = {};
 		}
 		if (!this.opts.Hostconfig.Binds) {
 			this.opts.Hostconfig.Binds = [];
