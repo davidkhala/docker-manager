@@ -1,5 +1,5 @@
 /**
- * @typedef containerOpts
+ * @typedef {Object} containerOpts
  * @property {string} name container name
  * @property {string[]} Env
  * @property {string} Cmd
@@ -44,6 +44,9 @@ export default class containerOptsBuilder {
 	 * @param logger
 	 */
 	constructor(Image, Cmd, logger = console) {
+		/**
+		 * @type {containerOpts}
+		 */
 		this.opts = {
 			Image,
 			Cmd,
@@ -155,13 +158,6 @@ export default class containerOptsBuilder {
 		return this;
 	}
 
-	/**
-	 *
-	 * @returns {containerOpts}
-	 */
-	build() {
-		return this.opts;
-	}
 }
 
 
