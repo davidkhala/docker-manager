@@ -2,7 +2,7 @@ import {execSync} from '@davidkhala/light/devOps.js'
 import fs from 'fs'
 
 export const daemonJsonFile = '/etc/docker/daemon.json'
-export const hosts = ["unix:///var/run/docker.sock", "tcp://127.0.0.1:2375", "tcp://127.0.0.1:2376"]
+export const hosts = ["unix:///var/run/docker.sock", "tcp://0.0.0.0:2375", "tcp://0.0.0.0:2376"]
 export const setHosts = (callback = data => data) => {
 	const data = fs.existsSync(daemonJsonFile) ? fs.readFileSync(daemonJsonFile).toString() : JSON.stringify({hosts})
 	fs.writeFileSync(daemonJsonFile, callback(data))

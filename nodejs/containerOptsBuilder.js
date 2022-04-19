@@ -98,7 +98,11 @@ export default class containerOptsBuilder {
 			this.opts.ExposedPorts = {};
 		}
 		if (!this.opts.Hostconfig) {
-			this.opts.Hostconfig = {};
+			this.opts.Hostconfig = {
+				ExtraHosts: [
+					"host.docker.internal:host-gateway",// docker host auto-binding
+				]
+			};
 		}
 		if (!this.opts.Hostconfig.PortBindings) {
 			this.opts.Hostconfig.PortBindings = {};
