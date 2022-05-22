@@ -13,4 +13,12 @@ ocir() {
 	docker login $region_key.ocir.io --username $tenancy_namespace/$username
 
 }
+aws-public(){
+	## aws ecr-public
+	## To Test: 1. how about using non-home region like hongkong
+	
+	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/davidkhala
+	
+	
+}
 $@
