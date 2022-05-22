@@ -13,7 +13,9 @@ ocir() {
     docker push $region_key.ocir.io/$tenancy_namespace/$image
     docker image rm --no-prune $region_key.ocir.io/$tenancy_namespace/$image
 }
-aws-ecr(){
+
+aws-public(){
+	## aws ecr-public
     local tenancy_namespace=${tenancy_namespace:-davidkhala}
     local image=$1
     
