@@ -15,7 +15,8 @@ ocir() {
 }
 aws-public(){
 	## aws ecr-public
-	## To Test: 1. how about using non-home region like hongkong
+	## Case 1: if we use other non-home region like hongkong, `get-login-password` will prompt error
+	## 	Could not connect to the endpoint URL: "https://api.ecr-public.ap-east-1.amazonaws.com/"
 	
 	aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/davidkhala
 	
