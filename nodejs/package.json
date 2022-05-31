@@ -1,9 +1,12 @@
 {
   "name": "@davidkhala/dockerode",
-  "version": "1.0.5",
+  "version": "1.0.6-rc1",
   "license": "Apache-2.0",
-  "description": "dockerode utils",
-  "author": "davidliu  <david-khala@hotmail.com>",
+  "description": "docker and podman utils",
+  "author": {
+    "name": "David Liu",
+    "email": "david-khala@hotmail.com"
+  },
   "repository": "davidkhala/docker-manager",
   "scripts": {
     "test": "mocha test",
@@ -15,7 +18,7 @@
   },
   "devDependencies": {
     "mocha": "latest",
-    "khala-logger": "latest"
+    "@davidkhala/logger": "latest"
   },
   "type": "module"
 }

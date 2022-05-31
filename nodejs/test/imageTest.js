@@ -1,4 +1,4 @@
-import {consoleLogger} from 'khala-logger/log4js'
+import {consoleLogger} from '@davidkhala/logger/log4.js'
 const logger = consoleLogger('test:docker');
 import DockerManager from '../docker.js';
 describe('docker image', () => {
