@@ -12,17 +12,19 @@ env:
 jobs:
 
   nodejs:
-    defaults:
-      run:
-        working-directory: nodejs
     runs-on: ubuntu-latest
     steps:
+    - run: loginctl enable-linger $(whoami)
+    - run: sleep 10
+    - run: podman system service --time=0 unix://run/user/${UID}/podman/podman.sock
+    - uses: actions/checkout@v2
+    - run: npm i
+      working-directory: nodejs
+    - run: npm run podman-test
+      working-directory: nodejs
     - name: Log in to ghcr.io
       uses: redhat-actions/podman-login@v1
       with:
-          username: ${{ env.REGISTRY_USER }}
-          password: ${{ env.REGISTRY_PASSWORD }}
-          registry: ${{ env.IMAGE_REGISTRY }}
-    - uses: actions/checkout@v2
-    - run: npm i
-    - run: npm run podman-test
+        username: ${{ env.REGISTRY_USER }}
+        password: ${{ env.REGISTRY_PASSWORD }}
+        registry: ${{ env.IMAGE_REGISTRY }}
