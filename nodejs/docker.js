@@ -1,8 +1,9 @@
 import Dockerode from 'dockerode';
 
-import { ContainerStatus, Reason } from './constants.js';
-const { exited, created, dead } = ContainerStatus;
-const { ContainerNotFound, ImageNotFound, NetworkNotFound, VolumeNotFound } = Reason;
+import {ContainerStatus, Reason} from './constants.js';
+
+const {exited, created, dead} = ContainerStatus;
+const {ContainerNotFound, ImageNotFound, NetworkNotFound, VolumeNotFound} = Reason;
 
 /**
  * @typedef {Object} DockerodeOpts
@@ -62,7 +63,7 @@ export default class DockerManager {
 		}
 	}
 
-	async networkCreate({ Name }, swarm) {
+	async networkCreate({Name}, swarm) {
 		const network = await this.docker.createNetwork({
 			Name, CheckDuplicate: true,
 			Driver: swarm ? 'overlay' : 'bridge',
@@ -72,26 +73,26 @@ export default class DockerManager {
 		return await network.inspect();
 	}
 
-	async networkCreateIfNotExist({ Name }, swarm) {
+	async networkCreateIfNotExist({Name}, swarm) {
 		try {
 			const network = this.docker.getNetwork(Name);
 			const status = await network.inspect();
-			const { Scope, Driver, Containers } = status;
+			const {Scope, Driver, Containers} = status;
 			this.logger.debug(`network[${Name}] exist`, {
 				Scope,
 				Driver,
-				Containers: Containers ? Object.values(Containers).map(({ Name }) => Name) : undefined
+				Containers: Containers ? Object.values(Containers).map(({Name}) => Name) : undefined
 			});
 			if ((Scope === 'local' && swarm) || (Scope === 'swarm' && !swarm)) {
 				this.logger.info(`network exist with unwanted ${Scope} ${swarm}`, 're-creating');
 				await network.remove();
-				return await this.networkCreate({ Name }, swarm);
+				return await this.networkCreate({Name}, swarm);
 			}
 			return status;
 		} catch (err) {
 			if (err.statusCode === 404 && err.reason === NetworkNotFound) {
 				this.logger.info(err.json.message, 'creating');
-				return await this.networkCreate({ Name }, swarm);
+				return await this.networkCreate({Name}, swarm);
 			} else {
 				throw err;
 			}
@@ -140,7 +141,7 @@ export default class DockerManager {
 	 * @returns {Promise<*>}
 	 */
 	async containerStart(createOptions, retryTimes = 1) {
-		const { name: containerName, Image: imageName } = createOptions;
+		const {name: containerName, Image: imageName} = createOptions;
 		let container = this.docker.getContainer(containerName);
 		let info;
 
@@ -178,9 +179,9 @@ export default class DockerManager {
 		return info;
 	};
 
-	async containerExec({ container_name, Cmd }) {
+	async containerExec({container_name, Cmd}) {
 		const container = this.docker.getContainer(container_name);
-		const exec = await container.exec({ Cmd });
+		const exec = await container.exec({Cmd});
 		await exec.start();
 		return await exec.inspect();
 	}
@@ -190,17 +191,17 @@ export default class DockerManager {
 	 * @param container_name
 	 * @return {Promise<void>}
 	 */
-	async containerSolidify({ container_name }) {
+	async containerSolidify({container_name}) {
 		const container = this.docker.getContainer(container_name);
 		await container.commit();
 	};
 
-	async containerList({ all, network, status } = { all: true }) {
+	async containerList({all, network, status} = {all: true}) {
 		const filters = {
 			network: network ? [network] : undefined,
 			status: status ? [status] : undefined
 		};
-		return this.docker.listContainers({ all, filters });
+		return this.docker.listContainers({all, filters});
 	}
 
 	async inflateContainerName(container_name) {
@@ -208,8 +209,8 @@ export default class DockerManager {
 		return containers.filter(container => container.Names.find(name => name.includes(container_name)));
 	}
 
-	async imageList({ all } = {}) {
-		return this.docker.listImages({ all });
+	async imageList({all} = {}) {
+		return this.docker.listImages({all});
 	}
 
 	async imageDelete(imageName) {
@@ -217,7 +218,7 @@ export default class DockerManager {
 			const image = this.docker.getImage(imageName);
 			const imageInfo = await image.inspect();
 			this.logger.info('delete image', imageInfo.RepoTags);
-			return await image.remove({ force: true });
+			return await image.remove({force: true});
 		} catch (err) {
 			if (err.statusCode === 404 && err.reason === ImageNotFound) {
 				this.logger.debug(err.json.message, 'skip deleting');
@@ -246,12 +247,20 @@ export default class DockerManager {
 
 		const stream = await this.docker.pull(imageName);
 		return new Promise((resolve, reject) => {
-			const onProgress = ({ status, progress }) => {
-				this.logger.debug(status, imageName, progress);
+			const onProgress = (event) => {
+				const {status, progress, progressDetail, id} = event
+				if (progress) {
+					// docker event
+					this.logger.debug(status, imageName, progress);
+				} else {
+					// podman event
+					this.logger.debug(status, imageName, progressDetail, id);
+				}
+
 			};
 			const onFinished = (err, output) => {
 				if (err) {
-					this.logger.error('pull image error', { err, output });
+					this.logger.error('pull image error', {err, output});
 					return reject(err);
 				} else {
 					return resolve(output);
@@ -262,7 +271,7 @@ export default class DockerManager {
 
 	};
 
-	async volumeCreateIfNotExist({ Name, path }) {
+	async volumeCreateIfNotExist({Name, path}) {
 		return this.docker.createVolume({
 			Name,
 			Driver: 'local',
