@@ -72,7 +72,7 @@ export class DockerSwarmManager extends DockerManager {
 	}
 
 	async taskList({services, nodes} = {}) {
-		return this.docker.listTasks({
+		return this.client.listTasks({
 			filters: {
 				service: Array.isArray(services) ? services : [],
 				node: Array.isArray(nodes) ? nodes : []
@@ -82,7 +82,7 @@ export class DockerSwarmManager extends DockerManager {
 
 	async serviceDelete(serviceName) {
 		try {
-			const service = this.docker.getService(serviceName);
+			const service = this.client.getService(serviceName);
 			const info = await service.inspect();
 			this.logger.debug('service delete', serviceName);
 			await service.remove();
@@ -119,7 +119,7 @@ export class DockerSwarmManager extends DockerManager {
 	async taskDeadWaiter(task) {
 		const {ID} = task;
 		try {
-			const taskInfo = await this.docker.getTask(ID).inspect();
+			const taskInfo = await this.client.getTask(ID).inspect();
 			const {Status: {ContainerStatus: {ContainerID}}} = taskInfo;
 			if (taskInfo.Status.State === 'failed') {
 				this.logger.error('rare case caught: State === failed', taskInfo);
@@ -128,7 +128,7 @@ export class DockerSwarmManager extends DockerManager {
 			this.logger.info('task locked', taskInfo.ID, taskInfo.Spec.ContainerSpec.Image, `at node ${taskInfo.NodeID}`, `for container ${ContainerID}`);
 			if (ContainerID) {
 				try {
-					await this.docker.getContainer(ContainerID).inspect();//TODO do we have a ping way?
+					await this.client.getContainer(ContainerID).inspect();//TODO do we have a ping way?
 					this.logger.info('container legacy', ContainerID);
 					await this.containerDelete(ContainerID);
 				} catch (err) {
@@ -188,7 +188,7 @@ export class DockerSwarmManager extends DockerManager {
 	}
 
 	async nodeList(pretty) {
-		let nodes = await this.docker.listNodes();
+		let nodes = await this.client.listNodes();
 		if (pretty) {
 			nodes = nodes.map(node => {
 				const {
@@ -205,7 +205,7 @@ export class DockerSwarmManager extends DockerManager {
 	};
 
 	async nodeDelete(id) {
-		const node = await this.docker.getNode(id);
+		const node = await this.client.getNode(id);
 		await node.remove();
 		this.logger.info(`node ${id} deleted`);
 	}
@@ -235,7 +235,7 @@ export class DockerSwarmManager extends DockerManager {
 
 	async swarmTouch() {
 		try {
-			const {ID} = await this.docker.swarmInspect();
+			const {ID} = await this.client.swarmInspect();
 			return {result: true, ID};
 		} catch (err) {
 			if (err.statusCode === 500) {
@@ -261,7 +261,7 @@ export class DockerSwarmManager extends DockerManager {
 			ForceNewCluster: false
 		};
 		try {
-			await this.docker.swarmInit(opts);
+			await this.client.swarmInit(opts);
 			this.logger.info('swarmInit', {AdvertiseAddr});
 		} catch (err) {
 			if (err.statusCode === 503 && err.json.message.includes('This node is already part of a swarm.')) {
@@ -278,7 +278,7 @@ export class DockerSwarmManager extends DockerManager {
 
 	async swarmBelongs({ID} = {}, token) {
 		try {
-			const info = await this.docker.swarmInspect();
+			const info = await this.client.swarmInspect();
 			if (ID === info.ID) {
 				this.logger.info('swarm belong: ID matched', ID);
 				return {result: true, swarm: info};
@@ -314,7 +314,7 @@ export class DockerSwarmManager extends DockerManager {
 			RemoteAddrs: [AdvertiseAddr]
 		};
 		try {
-			return await this.docker.swarmJoin(opts);
+			return await this.client.swarmJoin(opts);
 		} catch (err) {
 			if (err.statusCode === 503) {
 				if (err.json.message.includes('This node is already part of a swarm.')) {
@@ -363,7 +363,7 @@ export class DockerSwarmManager extends DockerManager {
 
 	async swarmLeave() {
 		try {
-			await this.docker.swarmLeave({force: true});
+			await this.client.swarmLeave({force: true});
 			this.logger.info('swarm leave finished');
 		} catch (err) {
 			if (err.statusCode === 503 && err.json.message === 'This node is not part of a swarm') {
@@ -376,7 +376,7 @@ export class DockerSwarmManager extends DockerManager {
 
 	async serviceCreateIfNotExist({Image, Name, Cmd, network, Constraints, volumes = [], ports = [], Env, Aliases}) {
 		try {
-			const service = this.docker.getService(Name);
+			const service = this.client.getService(Name);
 			const info = await service.inspect();
 			this.logger.info('service found', Name);
 			return info;
@@ -429,7 +429,7 @@ export class DockerSwarmManager extends DockerManager {
 						})
 					}
 				};
-				const service = await this.docker.createService(opts);
+				const service = await this.client.createService(opts);
 				return await service.inspect();
 			} else {
 				throw err;

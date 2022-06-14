@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: loginctl enable-linger $(whoami)
+    - run: podman -v
     - run: sleep 10
     - run: podman system service --time=0 unix://run/user/${UID}/podman/podman.sock
     - uses: actions/checkout@v2

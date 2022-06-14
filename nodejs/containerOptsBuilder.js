@@ -150,11 +150,13 @@ export default class containerOptsBuilder {
 		if (!this.opts.Volumes) {
 			this.opts.Volumes = {};
 		}
+		this.opts.Volumes[containerPath] = {};// docker only
+
 		if (!this.opts.Hostconfig.Binds) {
 			this.opts.Hostconfig.Binds = [];
 		}
-		this.opts.Volumes[containerPath] = {};
 		this.opts.Hostconfig.Binds.push(`${volumeName}:${containerPath}`);
+
 		return this;
 	}
 

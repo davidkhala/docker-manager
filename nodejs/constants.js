@@ -9,7 +9,8 @@ export const ContainerStatus = {
 	removing: 'removing',
 	paused: 'paused',
 	exited: 'exited',
-	dead: 'dead'
+	dead: 'dead',
+	initialized: 'initialized',
 };
 /**
  *
