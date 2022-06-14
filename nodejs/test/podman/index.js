@@ -2,6 +2,7 @@ import {socketPath, Podman} from '../../podman.js'
 import {filedirname} from '@davidkhala/light/es6.mjs'
 import assert from 'assert'
 import ContainerOptsBuilder from "../../containerOptsBuilder.js";
+
 filedirname(import.meta)
 
 describe('podman', function () {
@@ -34,6 +35,12 @@ describe('podman', function () {
 		await podman.containerStart(containerOptsBuilder.opts)
 		await podman.containerStart(containerOptsBuilder.opts)
 
+	})
+	it('network', async () => {
+		const Name = 'testnet'
+		const info = await podman.networkCreate({Name}, true)
+		console.info(info)
+		await podman.networkRemove(Name)
 	})
 });
 

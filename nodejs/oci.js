@@ -2,7 +2,7 @@ import Dockerode from "dockerode";
 import {ContainerStatus, Reason} from "./constants.js";
 import {sleep} from '@davidkhala/light/index.js'
 
-const {ContainerNotFound, VolumeNotFound} = Reason;
+const {ContainerNotFound, VolumeNotFound, NetworkNotFound} = Reason;
 const {exited, created, dead, initialized} = ContainerStatus
 /**
  * @typedef {Object} DockerodeOpts
@@ -134,5 +134,19 @@ export default class OCI {
 			info = await container.inspect();
 		}
 		return info;
+	}
+
+	async networkRemove(Name) {
+		try {
+			const network = this.client.getNetwork(Name);
+			await network.inspect();
+			return await network.remove();
+		} catch (err) {
+			if (err.statusCode === 404 && err.reason === NetworkNotFound) {
+				this.logger.info(err.json.message, 'deleting skipped');
+			} else {
+				throw err;
+			}
+		}
 	}
 }

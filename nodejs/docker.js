@@ -1,7 +1,7 @@
 import OCI from './oci.js'
 import {Reason} from './constants.js';
 
-const {ImageNotFound, NetworkNotFound, VolumeNotFound} = Reason;
+const {ImageNotFound, NetworkNotFound} = Reason;
 
 /**
  * @typedef {Object} DockerodeOpts
@@ -13,19 +13,6 @@ const {ImageNotFound, NetworkNotFound, VolumeNotFound} = Reason;
 
 export default class DockerManager extends OCI {
 
-	async networkRemove(Name) {
-		try {
-			const network = this.client.getNetwork(Name);
-			await network.inspect();
-			return await network.remove();
-		} catch (err) {
-			if (err.statusCode === 404 && err.reason === NetworkNotFound) {
-				this.logger.info(err.json.message, 'deleting skipped');
-			} else {
-				throw err;
-			}
-		}
-	}
 
 	async networkCreate({Name}, swarm) {
 		const network = await this.client.createNetwork({
