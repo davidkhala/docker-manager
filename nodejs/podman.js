@@ -46,5 +46,15 @@ export class Podman extends OCI {
 
 }
 export class PodmanContainerOptsBuilder extends OCIContainerOptsBuilder{
+	/**
+	 * TODO
+	 * @param {string} network
+	 * @returns {PodmanContainerOptsBuilder}
+	 */
+	setNetwork(network) {
 
+		this.opts.HostConfig.NetworkMode = network
+
+		return this;
+	}
 }

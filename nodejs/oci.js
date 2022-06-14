@@ -3,7 +3,9 @@ import {ContainerStatus, Reason} from "./constants.js";
 import {sleep} from '@davidkhala/light/index.js'
 
 const {ContainerNotFound, VolumeNotFound, NetworkNotFound, ImageNotFound} = Reason;
-const {exited, created, dead, initialized} = ContainerStatus
+const {exited, dead, initialized} = ContainerStatus
+const created = initialized
+
 /**
  * @typedef {Object} DockerodeOpts
  * @property {string} [socketPath]
@@ -75,7 +77,7 @@ export class OCI {
 			const containInfo = await container.inspect();
 			const currentStatus = containInfo.State.Status;
 			this.logger.debug('delete container', containerName, currentStatus);
-			if (![exited, created, dead, initialized].includes(currentStatus)) {
+			if (![exited, created, dead].includes(currentStatus)) {
 				await container.kill();
 			}
 			return await container.remove();
@@ -127,6 +129,7 @@ export class OCI {
 				}
 			}
 		};
+
 		if ([exited, created].includes(info.State.Status)) {
 			await start(container, retryTimes);
 			info = await container.inspect();
@@ -214,15 +217,13 @@ export class OCI {
 }
 
 
-
-
 /**
  * @typedef {Object} ContainerOpts
  * @property {string} name container name
  * @property {string[]} Env
  * @property {string} Cmd
  * @property {string} Image
- * @property {Object} Hostconfig
+ * @property {Object} HostConfig
  * sample: {
             Binds:[
                 `${hostPath}:${containerPath}`
@@ -252,7 +253,7 @@ export class OCIContainerOptsBuilder {
 		this.opts = {
 			Image,
 			Cmd,
-			Hostconfig: {}
+			HostConfig: {}
 		};
 		this.logger = logger;
 	}
@@ -295,11 +296,11 @@ export class OCIContainerOptsBuilder {
 			this.opts.ExposedPorts = {};
 		}
 
-		if (!this.opts.Hostconfig.PortBindings) {
-			this.opts.Hostconfig.PortBindings = {};
+		if (!this.opts.HostConfig.PortBindings) {
+			this.opts.HostConfig.PortBindings = {};
 		}
 		this.opts.ExposedPorts[containerPort] = {};
-		this.opts.Hostconfig.PortBindings[containerPort] = [{
+		this.opts.HostConfig.PortBindings[containerPort] = [{
 			HostPort
 		}];
 
@@ -313,10 +314,10 @@ export class OCIContainerOptsBuilder {
 	 * @returns {OCIContainerOptsBuilder}
 	 */
 	setVolume(volumeName, containerPath) {
-		if (!this.opts.Hostconfig.Binds) {
-			this.opts.Hostconfig.Binds = [];
+		if (!this.opts.HostConfig.Binds) {
+			this.opts.HostConfig.Binds = [];
 		}
-		this.opts.Hostconfig.Binds.push(`${volumeName}:${containerPath}`);
+		this.opts.HostConfig.Binds.push(`${volumeName}:${containerPath}`);
 
 		return this;
 	}

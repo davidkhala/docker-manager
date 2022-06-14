@@ -41,5 +41,12 @@ describe('podman', function () {
 		console.info(info)
 		await podman.networkRemove(Name)
 	})
+	it('inspect', async () => {
+		const containerName = 'ca.hyperledger'
+		const container = podman.client.getContainer(containerName);
+
+		const containInfo = await container.inspect();
+		console.log(containInfo.State.Status)
+	})
 });
 

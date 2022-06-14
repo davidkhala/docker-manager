@@ -112,11 +112,11 @@ export class DockerContainerOptsBuilder extends OCIContainerOptsBuilder {
 	}
 
 	setHostGateway() {
-		if (!this.opts.Hostconfig.ExtraHosts) {
-			this.opts.Hostconfig.ExtraHosts = []
+		if (!this.opts.HostConfig.ExtraHosts) {
+			this.opts.HostConfig.ExtraHosts = []
 		}
 
-		this.opts.Hostconfig.ExtraHosts.push(
+		this.opts.HostConfig.ExtraHosts.push(
 			"host.docker.internal:host-gateway",// docker host auto-binding
 		)
 	}
