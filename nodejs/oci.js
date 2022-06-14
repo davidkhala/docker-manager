@@ -2,7 +2,7 @@ import Dockerode from "dockerode";
 import {ContainerStatus, Reason} from "./constants.js";
 import {sleep} from '@davidkhala/light/index.js'
 
-const {ContainerNotFound, VolumeNotFound, NetworkNotFound} = Reason;
+const {ContainerNotFound, VolumeNotFound, NetworkNotFound, ImageNotFound} = Reason;
 const {exited, created, dead, initialized} = ContainerStatus
 /**
  * @typedef {Object} DockerodeOpts
@@ -16,7 +16,7 @@ const {exited, created, dead, initialized} = ContainerStatus
 /**
  * Open Container Initiative: OCI
  */
-export default class OCI {
+export class OCI {
 	/**
 	 *
 	 * @param {DockerodeOpts} [opts]
@@ -68,7 +68,6 @@ export default class OCI {
 	/**
 	 *
 	 * @param {string} containerName
-	 * @return {Promise}
 	 */
 	async containerDelete(containerName) {
 		const container = this.client.getContainer(containerName);
@@ -91,9 +90,8 @@ export default class OCI {
 	}
 
 	/**
-	 * @param {containerOpts} createOptions
+	 * @param {ContainerOpts} createOptions
 	 * @param {number} [retryTimes]
-	 * @returns {Promise<*>}
 	 */
 	async containerStart(createOptions, retryTimes = 1) {
 		const {name: containerName, Image: imageName} = createOptions;
@@ -136,6 +134,11 @@ export default class OCI {
 		return info;
 	}
 
+	async inflateContainerName(container_name) {
+		const containers = await this.containerList();
+		return containers.filter(container => container.Names.find(name => name.includes(container_name)));
+	}
+
 	async networkRemove(Name) {
 		try {
 			const network = this.client.getNetwork(Name);
@@ -149,4 +152,177 @@ export default class OCI {
 			}
 		}
 	}
+
+	async imageList(opts = {all: undefined}) {
+		return this.client.listImages(opts);
+	}
+
+	async imagePullIfNotExist(imageName) {
+		const image = this.client.getImage(imageName);
+		try {
+			return await image.inspect();
+		} catch (err) {
+			if (err.statusCode === 404 && err.reason === ImageNotFound) {
+				this.logger.debug(err.json.message, 'pulling');
+				await this.imagePull(imageName);
+				return await image.inspect();
+			} else {
+				throw err;
+			}
+		}
+	}
+
+	async containerList({all, network, status} = {all: true}) {
+		const filters = {
+			network: network ? [network] : undefined,
+			status: status ? [status] : undefined
+		};
+		return this.client.listContainers({all, filters});
+	}
+
+	async imageDelete(imageName) {
+		try {
+			const image = this.client.getImage(imageName);
+			const imageInfo = await image.inspect();
+			this.logger.info('delete image', imageInfo.RepoTags);
+			return await image.remove({force: true});
+		} catch (err) {
+			if (err.statusCode === 404 && err.reason === ImageNotFound) {
+				this.logger.debug(err.json.message, 'skip deleting');
+			} else {
+				throw err;
+			}
+		}
+	}
+
+	async imagePull(imageName, onProgressCallback) {
+
+		const stream = await this.client.pull(imageName);
+		return new Promise((resolve, reject) => {
+			const onFinished = (err, output) => {
+				if (err) {
+					this.logger.error('pull image error', {err, output});
+					return reject(err);
+				} else {
+					return resolve(output);
+				}
+			};
+			this.client.modem.followProgress(stream, onFinished, onProgressCallback);
+		});
+
+	}
 }
+
+
+
+
+/**
+ * @typedef {Object} ContainerOpts
+ * @property {string} name container name
+ * @property {string[]} Env
+ * @property {string} Cmd
+ * @property {string} Image
+ * @property {Object} Hostconfig
+ * sample: {
+            Binds:[
+                `${hostPath}:${containerPath}`
+            ]
+			PortBindings: {
+				'7054': [
+					{
+						HostPort: port.toString()
+					}
+				]
+			}
+
+		},
+ */
+export class OCIContainerOptsBuilder {
+
+	/**
+	 *
+	 * @param {string} Image
+	 * @param {string[]} Cmd
+	 * @param [logger]
+	 */
+	constructor(Image, Cmd, logger = console) {
+		/**
+		 * @type {ContainerOpts}
+		 */
+		this.opts = {
+			Image,
+			Cmd,
+			Hostconfig: {}
+		};
+		this.logger = logger;
+	}
+
+	/**
+	 * @param {string} name
+	 * @returns {OCIContainerOptsBuilder}
+	 */
+	setName(name) {
+		this.opts.name = name;
+		return this;
+	}
+
+	/**
+	 * @param {string[]} Env
+	 * @returns {OCIContainerOptsBuilder}
+	 */
+	setEnv(Env) {
+		this.opts.Env = Env;
+		return this;
+	}
+
+	/**
+	 * @param {object} env
+	 * @returns {OCIContainerOptsBuilder}
+	 */
+	setEnvObject(env) {
+		this.opts.Env = Object.entries(env).map(([key, value]) => `${key}=${value}`);
+		return this;
+	}
+
+	/**
+	 * @param {string} localBind `8051:7051`
+	 * @returns {OCIContainerOptsBuilder}
+	 */
+	setPortBind(localBind) {
+		const [HostPort, containerPort] = localBind.split(':');
+		this.logger.info(`container:${containerPort} => localhost:${HostPort}`);
+		if (!this.opts.ExposedPorts) {
+			this.opts.ExposedPorts = {};
+		}
+
+		if (!this.opts.Hostconfig.PortBindings) {
+			this.opts.Hostconfig.PortBindings = {};
+		}
+		this.opts.ExposedPorts[containerPort] = {};
+		this.opts.Hostconfig.PortBindings[containerPort] = [{
+			HostPort
+		}];
+
+		return this;
+	};
+
+	/**
+	 *
+	 * @param {string} volumeName or a bind-mount absolute path
+	 * @param {string} containerPath
+	 * @returns {OCIContainerOptsBuilder}
+	 */
+	setVolume(volumeName, containerPath) {
+		if (!this.opts.Hostconfig.Binds) {
+			this.opts.Hostconfig.Binds = [];
+		}
+		this.opts.Hostconfig.Binds.push(`${volumeName}:${containerPath}`);
+
+		return this;
+	}
+
+}
+
+
+
+

@@ -1,11 +1,10 @@
 import {consoleLogger} from '@davidkhala/logger/log4.js'
-import DockerManager from '../docker.js';
+import {default as DockerManager, DockerContainerOptsBuilder} from '../docker.js';
 const logger = consoleLogger('test:docker');
-import ContainerOptsBuilder from '../containerOptsBuilder.js';
 
 describe('container Opts builder', () => {
 	it('constructor', () => {
-		new ContainerOptsBuilder('image', 'sh');
+		new DockerContainerOptsBuilder('image', 'sh');
 	});
 });
 describe('container test', () => {
@@ -18,7 +17,7 @@ describe('container test', () => {
 	});
 	it('container start:restart', async function () {
 		this.timeout(0);
-		const containerOptsBuilder = new ContainerOptsBuilder(imageName, []);
+		const containerOptsBuilder = new DockerContainerOptsBuilder(imageName, []);
 		containerOptsBuilder.setName(containerName);
 		const {opts} = containerOptsBuilder;
 		await dockerManager.containerStart(opts);

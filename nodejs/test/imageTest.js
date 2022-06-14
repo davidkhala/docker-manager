@@ -12,8 +12,8 @@ describe('docker image', () => {
 	it('pull if not exist', async function () {
 		this.timeout(30000);
 		const imageName = 'hello-world';
-		await dockerManager.imageCreateIfNotExist(imageName);
-		await dockerManager.imageCreateIfNotExist(imageName);
+		await dockerManager.imagePullIfNotExist(imageName);
+		await dockerManager.imagePullIfNotExist(imageName);
 		let imageList = await dockerManager.imageList();
 		logger.debug('imageList', imageList);
 		imageList = await dockerManager.imageList({all: true});

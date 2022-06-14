@@ -1,7 +1,6 @@
-import {socketPath, Podman} from '../../podman.js'
+import {socketPath, Podman, PodmanContainerOptsBuilder} from '../../podman.js'
 import {filedirname} from '@davidkhala/light/es6.mjs'
 import assert from 'assert'
-import ContainerOptsBuilder from "../../containerOptsBuilder.js";
 
 filedirname(import.meta)
 
@@ -29,7 +28,7 @@ describe('podman', function () {
 		await podman.volumeRemove(Name)
 
 		await podman.volumeCreateIfNotExist({Name, path})
-		const containerOptsBuilder = new ContainerOptsBuilder('busybox');
+		const containerOptsBuilder = new PodmanContainerOptsBuilder('busybox');
 		containerOptsBuilder.setVolume(Name, '/web')
 		containerOptsBuilder.setName(containerName)
 		await podman.containerStart(containerOptsBuilder.opts)

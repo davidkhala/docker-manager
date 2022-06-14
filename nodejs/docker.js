@@ -1,4 +1,4 @@
-import OCI from './oci.js'
+import {OCI, OCIContainerOptsBuilder} from './oci.js'
 import {Reason} from './constants.js';
 
 const {ImageNotFound, NetworkNotFound} = Reason;
@@ -77,78 +77,16 @@ export default class DockerManager extends OCI {
 		await container.commit();
 	}
 
-	async containerList({all, network, status} = {all: true}) {
-		const filters = {
-			network: network ? [network] : undefined,
-			status: status ? [status] : undefined
-		};
-		return this.client.listContainers({all, filters});
-	}
-
-	async inflateContainerName(container_name) {
-		const containers = await this.containerList();
-		return containers.filter(container => container.Names.find(name => name.includes(container_name)));
-	}
-
-	async imageList({all} = {}) {
-		return this.client.listImages({all});
-	}
-
-	async imageDelete(imageName) {
-		try {
-			const image = this.client.getImage(imageName);
-			const imageInfo = await image.inspect();
-			this.logger.info('delete image', imageInfo.RepoTags);
-			return await image.remove({force: true});
-		} catch (err) {
-			if (err.statusCode === 404 && err.reason === ImageNotFound) {
-				this.logger.debug(err.json.message, 'skip deleting');
-			} else {
-				throw err;
-			}
-		}
-	}
-
-	async imageCreateIfNotExist(imageName) {
-		const image = this.client.getImage(imageName);
-		try {
-			return await image.inspect();
-		} catch (err) {
-			if (err.statusCode === 404 && err.reason === ImageNotFound) {
-				this.logger.debug(err.json.message, 'pulling');
-				await this.imagePull(imageName);
-				return await image.inspect();
-			} else {
-				throw err;
-			}
-		}
-	}
 
 	async imagePull(imageName) {
 
-		const stream = await this.client.pull(imageName);
-		return new Promise((resolve, reject) => {
-			const onProgress = (event) => {
-				const {status, progress, progressDetail, id} = event
-				if (progress) {
-					// docker event
-					this.logger.debug(status, imageName, progress);
-				} else {
-					// podman event
-					this.logger.debug(status, imageName, progressDetail, id);
-				}
+		const onProgress = (event) => {
+			const {status, progress} = event
+			// docker event
+			this.logger.debug(status, imageName, progress);
+		}
 
-			};
-			const onFinished = (err, output) => {
-				if (err) {
-					this.logger.error('pull image error', {err, output});
-					return reject(err);
-				} else {
-					return resolve(output);
-				}
-			};
-			this.client.modem.followProgress(stream, onFinished, onProgress);
-		});
+		return super.imagePull(imageName, onProgress)
 
 	}
 
@@ -164,4 +102,60 @@ export default class DockerManager extends OCI {
 		});
 	}
 
+}
+
+export class DockerContainerOptsBuilder extends OCIContainerOptsBuilder {
+	constructor(Image, Cmd, logger) {
+		super(Image, Cmd, logger);
+		this.opts.ExposedPorts = {}
+		this.opts.Volumes= {}
+	}
+
+	setHostGateway() {
+		if (!this.opts.Hostconfig.ExtraHosts) {
+			this.opts.Hostconfig.ExtraHosts = []
+		}
+
+		this.opts.Hostconfig.ExtraHosts.push(
+			"host.docker.internal:host-gateway",// docker host auto-binding
+		)
+	}
+
+	/**
+	 * Expose a port used within docker network only
+	 * @param {string} containerPort
+	 * @return {DockerContainerOptsBuilder}
+	 */
+	setExposedPort(containerPort) {
+		this.opts.ExposedPorts[containerPort] = {};
+		return this;
+	}
+	/**
+	 * @param {string} network
+	 * @param {string[]} Aliases
+	 * @returns {DockerContainerOptsBuilder}
+	 */
+	setNetwork(network, Aliases) {
+		if (!this.opts.NetworkingConfig) {
+			this.opts.NetworkingConfig = {};
+		}
+		if (!this.opts.NetworkingConfig.EndpointsConfig) {
+			this.opts.NetworkingConfig.EndpointsConfig = {};
+		}
+		this.opts.NetworkingConfig.EndpointsConfig[network] = {
+			Aliases
+		};
+		return this;
+	}
+	/**
+	 *
+	 * @param {string} volumeName or a bind-mount absolute path
+	 * @param {string} containerPath
+	 * @returns {DockerContainerOptsBuilder}
+	 */
+	setVolume(volumeName, containerPath) {
+		super.setVolume(volumeName, containerPath)
+		this.opts.Volumes[containerPath] = {};// docker only
+		return this;
+	}
 }

@@ -1,6 +1,6 @@
 {
   "name": "@davidkhala/dockerode",
-  "version": "1.0.6-rc2",
+  "version": "1.0.6",
   "license": "Apache-2.0",
   "description": "docker and podman utils",
   "author": {
