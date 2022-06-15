@@ -50,6 +50,22 @@ export class OCI {
 		const result = await this.client.ping();
 		return result.toString();
 	}
+	/**
+	 *
+	 * @param Name
+	 * @param path
+	 */
+	async volumeCreateIfNotExist({Name, path}) {
+		return this.client.createVolume({
+			Name,
+			Driver: 'local',
+			DriverOpts: {
+				o: 'bind',
+				device: path,
+				type: 'none'
+			}
+		});
+	}
 
 	async volumeRemove(Name) {
 		try {
@@ -318,7 +334,6 @@ export class OCIContainerOptsBuilder {
 			this.opts.HostConfig.Binds = [];
 		}
 		this.opts.HostConfig.Binds.push(`${volumeName}:${containerPath}`);
-
 		return this;
 	}
 

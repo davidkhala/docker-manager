@@ -90,17 +90,7 @@ export default class DockerManager extends OCI {
 
 	}
 
-	async volumeCreateIfNotExist({Name, path}) {
-		return this.client.createVolume({
-			Name,
-			Driver: 'local',
-			DriverOpts: {
-				o: 'bind',
-				device: path,
-				type: 'none'
-			}
-		});
-	}
+
 
 }
 

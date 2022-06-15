@@ -24,6 +24,7 @@ describe('podman', function () {
 		const path = __dirname
 		const containerName = 'centosContainer'
 
+		// before
 		await podman.containerDelete(containerName);
 		await podman.volumeRemove(Name)
 
@@ -31,7 +32,6 @@ describe('podman', function () {
 		const containerOptsBuilder = new PodmanContainerOptsBuilder('busybox');
 		containerOptsBuilder.setVolume(Name, '/web')
 		containerOptsBuilder.setName(containerName)
-		await podman.containerStart(containerOptsBuilder.opts)
 		await podman.containerStart(containerOptsBuilder.opts)
 
 	})

@@ -5,22 +5,6 @@ export const socketPath = `/run/user/${uid}/podman/podman.sock`
 
 
 export class Podman extends OCI {
-	/**
-	 *
-	 * @param Name
-	 * @param path
-	 */
-	async volumeCreateIfNotExist({Name, path}) {
-		const opts = {
-			Name,
-			Driver: 'local',
-			DriverOpts: {}
-		}
-		if (path) {
-			opts.DriverOpts.device = path
-		}
-		return this.client.createVolume(opts);
-	}
 
 	async networkCreate({Name}, rootless) {
 		const network = await this.client.createNetwork({
@@ -45,7 +29,8 @@ export class Podman extends OCI {
 	}
 
 }
-export class PodmanContainerOptsBuilder extends OCIContainerOptsBuilder{
+
+export class PodmanContainerOptsBuilder extends OCIContainerOptsBuilder {
 	/**
 	 * TODO
 	 * @param {string} network
