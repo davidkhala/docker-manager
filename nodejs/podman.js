@@ -8,10 +8,8 @@ export class Podman extends OCI {
 
 	async networkCreate({Name}, rootless) {
 		const network = await this.client.createNetwork({
-			Name, CheckDuplicate: true,
+			Name,
 			Driver: rootless ? 'macvlan' : 'bridge',
-			Internal: false,
-			Attachable: true
 		});
 		return await network.inspect();
 	}

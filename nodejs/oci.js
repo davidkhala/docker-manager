@@ -50,6 +50,7 @@ export class OCI {
 		const result = await this.client.ping();
 		return result.toString();
 	}
+
 	/**
 	 *
 	 * @param Name
@@ -259,7 +260,7 @@ export class OCIContainerOptsBuilder {
 	/**
 	 *
 	 * @param {string} Image
-	 * @param {string[]} Cmd
+	 * @param {string[]} [Cmd]
 	 * @param [logger]
 	 */
 	constructor(Image, Cmd, logger = console) {
@@ -268,7 +269,7 @@ export class OCIContainerOptsBuilder {
 		 */
 		this.opts = {
 			Image,
-			Cmd,
+			Cmd: Cmd || ['sleep', 'infinity'],
 			HostConfig: {}
 		};
 		this.logger = logger;
