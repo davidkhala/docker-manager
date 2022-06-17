@@ -1,8 +1,9 @@
+import {uid} from '@davidkhala/light/devOps.js'
 import {OCI, OCIContainerOptsBuilder} from './oci.js'
 import {Reason} from './constants.js';
-
 const {ImageNotFound, NetworkNotFound} = Reason;
 
+export const socketPath = `/run/user/${uid}/docker.sock`
 /**
  * @typedef {Object} DockerodeOpts
  * @property {string} [socketPath]
