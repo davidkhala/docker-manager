@@ -1,8 +1,8 @@
-import {Container, ContainerOptsBuilder, socketPath} from "../../podman.js";
+import {ContainerManager, ContainerOptsBuilder, socketPath} from "../../podman.js";
 
 describe('podman network', function () {
 	this.timeout(0)
-	const podman = new Container({socketPath})
+	const podman = new ContainerManager({socketPath})
 	const Name = 'testnet' // network name
 	it('create macvlan', async () => {
 

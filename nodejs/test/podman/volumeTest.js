@@ -1,11 +1,11 @@
 import assert from 'assert'
-import {Container, ContainerOptsBuilder, socketPath} from "../../podman.js";
+import {ContainerManager, ContainerOptsBuilder, socketPath} from "../../podman.js";
 import {filedirname} from '@davidkhala/light/es6.mjs'
 filedirname(import.meta)
 
 describe('podman volume', function (){
 	this.timeout(0)
-	const podman = new Container({socketPath})
+	const podman = new ContainerManager({socketPath})
 	it('volume create and mount', async () => {
 		const Name = 'vol'
 		const path = __dirname

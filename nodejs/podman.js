@@ -3,7 +3,7 @@ import {OCI, OCIContainerOptsBuilder} from './oci.js'
 
 export const socketPath = `/run/user/${uid}/podman/podman.sock`
 
-export class Container extends OCI {
+export class ContainerManager extends OCI {
 
 	async networkCreate({Name}, rootless) {
 		const network = await this.client.createNetwork({
