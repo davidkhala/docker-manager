@@ -9,8 +9,8 @@ export const socketPath = `/run/user/${uid}/podman/podman.sock`;
 
 export class ContainerManager extends OCI {
 
-	constructor(...params) {
-		super(...params);
+	constructor(opts = {socketPath}, logger) {
+		super(opts, logger);
 		this.containerStatus.afterCreate = [initialized];
 		this.containerStatus.beforeKill = [running];
 	}
