@@ -1,9 +1,11 @@
-import {uid} from '@davidkhala/light/devOps.js'
-import {OCI, OCIContainerOptsBuilder} from './oci.js'
-import {Reason} from './constants.js';
-const {ImageNotFound, NetworkNotFound} = Reason;
+import {uid} from '@davidkhala/light/devOps.js';
+import {OCI, OCIContainerOptsBuilder} from './oci.js';
+import {Reason, ContainerStatus} from './constants.js';
 
-export const socketPath = `/run/user/${uid}/docker.sock`
+const {NetworkNotFound} = Reason;
+const {created, running} = ContainerStatus;
+export const socketPath = `/run/user/${uid}/docker.sock`;
+
 /**
  * @typedef {Object} DockerodeOpts
  * @property {string} [socketPath]
@@ -14,6 +16,11 @@ export const socketPath = `/run/user/${uid}/docker.sock`
 
 export class ContainerManager extends OCI {
 
+	constructor(...params) {
+		super(...params);
+		this.containerStatus.beforeKill = [running];
+		this.containerStatus.afterCreate = [created];
+	}
 
 	async networkCreate({Name}, swarm) {
 		const network = await this.client.createNetwork({
@@ -82,15 +89,14 @@ export class ContainerManager extends OCI {
 	async imagePull(imageName) {
 
 		const onProgress = (event) => {
-			const {status, progress} = event
+			const {status, progress} = event;
 			// docker event
 			this.logger.debug(status, imageName, progress);
-		}
+		};
 
-		return super.imagePull(imageName, onProgress)
+		return super.imagePull(imageName, onProgress);
 
 	}
-
 
 
 }
@@ -98,18 +104,18 @@ export class ContainerManager extends OCI {
 export class ContainerOptsBuilder extends OCIContainerOptsBuilder {
 	constructor(Image, Cmd, logger) {
 		super(Image, Cmd, logger);
-		this.opts.ExposedPorts = {}
-		this.opts.Volumes= {}
+		this.opts.ExposedPorts = {};
+		this.opts.Volumes = {};
 	}
 
 	setHostGateway() {
 		if (!this.opts.HostConfig.ExtraHosts) {
-			this.opts.HostConfig.ExtraHosts = []
+			this.opts.HostConfig.ExtraHosts = [];
 		}
 
 		this.opts.HostConfig.ExtraHosts.push(
-			"host.docker.internal:host-gateway",// docker host auto-binding
-		)
+			'host.docker.internal:host-gateway',// docker host auto-binding
+		);
 	}
 
 	/**
@@ -121,6 +127,7 @@ export class ContainerOptsBuilder extends OCIContainerOptsBuilder {
 		this.opts.ExposedPorts[containerPort] = {};
 		return this;
 	}
+
 	/**
 	 * @param {string} network
 	 * @param {string[]} Aliases
@@ -138,6 +145,7 @@ export class ContainerOptsBuilder extends OCIContainerOptsBuilder {
 		};
 		return this;
 	}
+
 	/**
 	 *
 	 * @param {string} volumeName or a bind-mount absolute path
@@ -145,7 +153,7 @@ export class ContainerOptsBuilder extends OCIContainerOptsBuilder {
 	 * @returns {ContainerOptsBuilder}
 	 */
 	setVolume(volumeName, containerPath) {
-		super.setVolume(volumeName, containerPath)
+		super.setVolume(volumeName, containerPath);
 		this.opts.Volumes[containerPath] = {};// docker only
 		return this;
 	}

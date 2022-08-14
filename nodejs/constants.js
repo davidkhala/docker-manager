@@ -10,7 +10,7 @@ export const ContainerStatus = {
 	paused: 'paused',
 	exited: 'exited',
 	dead: 'dead',
-	initialized: 'initialized',// podman alternative of 'created'
+	initialized: 'initialized', // podman alternative of 'created'
 };
 /**
  *

@@ -1,10 +1,9 @@
-import Dockerode from "dockerode";
-import {ContainerStatus, Reason} from "./constants.js";
-import {sleep} from '@davidkhala/light/index.js'
+import Dockerode from 'dockerode';
+import {Reason} from './constants.js';
+import {sleep} from '@davidkhala/light/index.js';
 
 const {ContainerNotFound, VolumeNotFound, NetworkNotFound, ImageNotFound} = Reason;
-const {exited, dead, initialized} = ContainerStatus
-const created = initialized
+
 
 /**
  * @typedef {Object} DockerodeOpts
@@ -20,10 +19,10 @@ const created = initialized
  */
 export class OCI {
 	/**
-	 *
-	 * @param {DockerodeOpts} [opts]
-	 * @param [logger]
-	 */
+     *
+     * @param {DockerodeOpts} [opts]
+     * @param [logger]
+     */
 	constructor(opts, logger = console) {
 		if (opts && !opts.protocol && opts.host) {
 			opts.protocol = 'ssh';
@@ -33,12 +32,14 @@ export class OCI {
 		this.logger = logger;
 
 		this.prune = {
-			images: this.client.pruneImages,
-			system: async () => {
+			images: this.client.pruneImages, system: async () => {
 				await this.client.pruneContainers();
 				await this.client.pruneVolumes();
 				await this.client.pruneNetworks();
 			}
+		};
+		this.containerStatus = {
+			afterCreate: [], beforeKill: []
 		};
 	}
 
@@ -52,18 +53,14 @@ export class OCI {
 	}
 
 	/**
-	 *
-	 * @param Name
-	 * @param path
-	 */
+     *
+     * @param Name
+     * @param path
+     */
 	async volumeCreateIfNotExist({Name, path}) {
 		return this.client.createVolume({
-			Name,
-			Driver: 'local',
-			DriverOpts: {
-				o: 'bind',
-				device: path,
-				type: 'none'
+			Name, Driver: 'local', DriverOpts: {
+				o: 'bind', device: path, type: 'none'
 			}
 		});
 	}
@@ -85,16 +82,16 @@ export class OCI {
 	}
 
 	/**
-	 *
-	 * @param {string} containerName
-	 */
+     *
+     * @param {string} containerName
+     */
 	async containerDelete(containerName) {
 		const container = this.client.getContainer(containerName);
 		try {
 			const containInfo = await container.inspect();
 			const currentStatus = containInfo.State.Status;
 			this.logger.debug('delete container', containerName, currentStatus);
-			if (![exited, created, dead].includes(currentStatus)) {
+			if (this.containerStatus.beforeKill.includes(currentStatus)) {
 				await container.kill();
 			}
 			return await container.remove();
@@ -109,9 +106,9 @@ export class OCI {
 	}
 
 	/**
-	 * @param {ContainerOpts} createOptions
-	 * @param {number} [retryTimes]
-	 */
+     * @param {ContainerOpts} createOptions
+     * @param {number} [retryTimes]
+     */
 	async containerStart(createOptions, retryTimes = 1) {
 		const {name: containerName, Image: imageName} = createOptions;
 		let container = this.client.getContainer(containerName);
@@ -124,7 +121,7 @@ export class OCI {
 		} catch (err) {
 			if (err.reason === ContainerNotFound && err.statusCode === 404) {
 				this.logger.info(err.json.message);
-				this.logger.info(`creating container [${containerName}]`)
+				this.logger.info(`creating container [${containerName}]`);
 				container = await this.client.createContainer(createOptions);
 				info = await container.inspect();
 			} else {
@@ -135,10 +132,7 @@ export class OCI {
 			try {
 				await c.start();
 			} catch (e) {
-				if (e.message.includes('port is already allocated')
-					&& e.reason === 'server error'
-					&& e.statusCode === 500
-					&& retryCountDown > 0) {
+				if (e.message.includes('port is already allocated') && e.reason === 'server error' && e.statusCode === 500 && retryCountDown > 0) {
 					await sleep(1000);
 					await start(c, retryCountDown - 1);
 				} else {
@@ -147,7 +141,7 @@ export class OCI {
 			}
 		};
 
-		if ([exited, created].includes(info.State.Status)) {
+		if (this.containerStatus.afterCreate.includes(info.State.Status)) {
 			await start(container, retryTimes);
 			info = await container.inspect();
 		}
@@ -194,8 +188,7 @@ export class OCI {
 
 	async containerList({all, network, status} = {all: true}) {
 		const filters = {
-			network: network ? [network] : undefined,
-			status: status ? [status] : undefined
+			network: network ? [network] : undefined, status: status ? [status] : undefined
 		};
 		return this.client.listContainers({all, filters});
 	}
@@ -258,54 +251,52 @@ export class OCI {
 export class OCIContainerOptsBuilder {
 
 	/**
-	 *
-	 * @param {string} Image
-	 * @param {string[]} [Cmd]
-	 * @param [logger]
-	 */
+     *
+     * @param {string} Image
+     * @param {string[]} [Cmd]
+     * @param [logger]
+     */
 	constructor(Image, Cmd, logger = console) {
 		/**
-		 * @type {ContainerOpts}
-		 */
+         * @type {ContainerOpts}
+         */
 		this.opts = {
-			Image,
-			Cmd: Cmd || ['sleep', 'infinity'],
-			HostConfig: {}
+			Image, Cmd: Cmd || ['sleep', 'infinity'], HostConfig: {}
 		};
 		this.logger = logger;
 	}
 
 	/**
-	 * @param {string} name
-	 * @returns {OCIContainerOptsBuilder}
-	 */
+     * @param {string} name
+     * @returns {OCIContainerOptsBuilder}
+     */
 	setName(name) {
 		this.opts.name = name;
 		return this;
 	}
 
 	/**
-	 * @param {string[]} Env
-	 * @returns {OCIContainerOptsBuilder}
-	 */
+     * @param {string[]} Env
+     * @returns {OCIContainerOptsBuilder}
+     */
 	setEnv(Env) {
 		this.opts.Env = Env;
 		return this;
 	}
 
 	/**
-	 * @param {object} env
-	 * @returns {OCIContainerOptsBuilder}
-	 */
+     * @param {object} env
+     * @returns {OCIContainerOptsBuilder}
+     */
 	setEnvObject(env) {
 		this.opts.Env = Object.entries(env).map(([key, value]) => `${key}=${value}`);
 		return this;
 	}
 
 	/**
-	 * @param {string} localBind `8051:7051`
-	 * @returns {OCIContainerOptsBuilder}
-	 */
+     * @param {string} localBind `8051:7051`
+     * @returns {OCIContainerOptsBuilder}
+     */
 	setPortBind(localBind) {
 		const [HostPort, containerPort] = localBind.split(':');
 		this.logger.info(`container:${containerPort} => localhost:${HostPort}`);
@@ -322,14 +313,14 @@ export class OCIContainerOptsBuilder {
 		}];
 
 		return this;
-	};
+	}
 
 	/**
-	 *
-	 * @param {string} volumeName or a bind-mount absolute path
-	 * @param {string} containerPath
-	 * @returns {OCIContainerOptsBuilder}
-	 */
+     *
+     * @param {string} volumeName or a bind-mount absolute path
+     * @param {string} containerPath
+     * @returns {OCIContainerOptsBuilder}
+     */
 	setVolume(volumeName, containerPath) {
 		if (!this.opts.HostConfig.Binds) {
 			this.opts.HostConfig.Binds = [];

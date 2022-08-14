@@ -1,9 +1,19 @@
-import {uid} from '@davidkhala/light/devOps.js'
-import {OCI, OCIContainerOptsBuilder} from './oci.js'
+import {uid} from '@davidkhala/light/devOps.js';
+import {ContainerStatus} from './constants.js';
+import {OCI, OCIContainerOptsBuilder} from './oci.js';
 
-export const socketPath = `/run/user/${uid}/podman/podman.sock`
+const {initialized, running} = ContainerStatus;
+
+
+export const socketPath = `/run/user/${uid}/podman/podman.sock`;
 
 export class ContainerManager extends OCI {
+
+	constructor(...params) {
+		super(...params);
+		this.containerStatus.afterCreate = [initialized];
+		this.containerStatus.beforeKill = [running];
+	}
 
 	async networkCreate({Name}, rootless) {
 		const network = await this.client.createNetwork({
@@ -16,12 +26,12 @@ export class ContainerManager extends OCI {
 	async imagePull(imageName) {
 
 		const onProgress = (event) => {
-			const {status, progressDetail, id} = event
+			const {status, progressDetail, id} = event;
 			// Podman event
 			this.logger.debug(status, imageName, progressDetail, id);
 		};
 
-		return super.imagePull(imageName, onProgress)
+		return super.imagePull(imageName, onProgress);
 
 	}
 
@@ -35,7 +45,7 @@ export class ContainerOptsBuilder extends OCIContainerOptsBuilder {
 	 */
 	setNetwork(network) {
 
-		this.opts.HostConfig.NetworkMode = network
+		this.opts.HostConfig.NetworkMode = network;
 
 		return this;
 	}
