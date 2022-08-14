@@ -1,8 +1,8 @@
-import {Podman, PodmanContainerOptsBuilder, socketPath} from "../../podman.js";
+import {Container, ContainerOptsBuilder, socketPath} from "../../podman.js";
 
 describe('podman network', function () {
 	this.timeout(0)
-	const podman = new Podman({socketPath})
+	const podman = new Container({socketPath})
 	const Name = 'testnet' // network name
 	it('create macvlan', async () => {
 
@@ -19,7 +19,7 @@ describe('podman network', function () {
 		const info = await podman.networkCreate({Name})
 		const containerName = 'busyBoxN'
 
-		const containerOptsBuilder = new PodmanContainerOptsBuilder('busybox', ['sleep', 'infinity']);
+		const containerOptsBuilder = new ContainerOptsBuilder('busybox', ['sleep', 'infinity']);
 		containerOptsBuilder.setName(containerName)
 		containerOptsBuilder.setNetwork(Name)
 		await podman.containerStart(containerOptsBuilder.opts)

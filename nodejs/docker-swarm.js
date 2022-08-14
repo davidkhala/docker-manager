@@ -1,4 +1,4 @@
-import DockerManager from './docker.js';
+import ContainerManager from './docker.js';
 import {execSync} from '@davidkhala/light/devOps.js'
 import {systemInfo} from './dockerCmd.js'
 export const swarmWorkerInfo = () => {
@@ -64,7 +64,7 @@ export const NodeStatus = {
 	down: 'down'
 };
 
-export class DockerSwarmManager extends DockerManager {
+export class DockerSwarmManager extends ContainerManager {
 
 	constructor(opts, logger = console) {
 		super(opts, logger);

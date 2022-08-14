@@ -1,12 +1,12 @@
-import {socketPath, Podman, PodmanContainerOptsBuilder} from '../../podman.js'
-import {filedirname} from '@davidkhala/light/es6.mjs'
 import assert from 'assert'
+import {socketPath, Container, ContainerOptsBuilder} from '../../podman.js'
+import {filedirname} from '@davidkhala/light/es6.mjs'
 
 filedirname(import.meta)
 
 describe('podman', function () {
 	this.timeout(0)
-	const podman = new Podman({socketPath})
+	const podman = new Container({socketPath})
 	it('ping', async () => {
 		const ok = await podman.ping();
 		assert.strictEqual(ok, "OK")

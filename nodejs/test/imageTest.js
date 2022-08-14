@@ -1,8 +1,8 @@
 import {consoleLogger} from '@davidkhala/logger/log4.js'
 const logger = consoleLogger('test:docker');
-import DockerManager from '../docker.js';
+import {ContainerManager} from '../docker.js';
 describe('docker image', () => {
-	const dockerManager = new DockerManager(undefined, logger);
+	const dockerManager = new ContainerManager(undefined, logger);
 	it('pull hello-world', async function () {
 		this.timeout(30000);
 		const imageName = 'hello-world';

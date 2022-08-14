@@ -12,7 +12,7 @@ export const socketPath = `/run/user/${uid}/docker.sock`
  * @property {number} [port]
  */
 
-export default class DockerManager extends OCI {
+export class ContainerManager extends OCI {
 
 
 	async networkCreate({Name}, swarm) {
@@ -95,7 +95,7 @@ export default class DockerManager extends OCI {
 
 }
 
-export class DockerContainerOptsBuilder extends OCIContainerOptsBuilder {
+export class ContainerOptsBuilder extends OCIContainerOptsBuilder {
 	constructor(Image, Cmd, logger) {
 		super(Image, Cmd, logger);
 		this.opts.ExposedPorts = {}
@@ -115,7 +115,7 @@ export class DockerContainerOptsBuilder extends OCIContainerOptsBuilder {
 	/**
 	 * Expose a port used within docker network only
 	 * @param {string} containerPort
-	 * @return {DockerContainerOptsBuilder}
+	 * @return {ContainerOptsBuilder}
 	 */
 	setExposedPort(containerPort) {
 		this.opts.ExposedPorts[containerPort] = {};
@@ -124,7 +124,7 @@ export class DockerContainerOptsBuilder extends OCIContainerOptsBuilder {
 	/**
 	 * @param {string} network
 	 * @param {string[]} Aliases
-	 * @returns {DockerContainerOptsBuilder}
+	 * @returns {ContainerOptsBuilder}
 	 */
 	setNetwork(network, Aliases) {
 		if (!this.opts.NetworkingConfig) {
@@ -142,7 +142,7 @@ export class DockerContainerOptsBuilder extends OCIContainerOptsBuilder {
 	 *
 	 * @param {string} volumeName or a bind-mount absolute path
 	 * @param {string} containerPath
-	 * @returns {DockerContainerOptsBuilder}
+	 * @returns {ContainerOptsBuilder}
 	 */
 	setVolume(volumeName, containerPath) {
 		super.setVolume(volumeName, containerPath)
