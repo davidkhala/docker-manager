@@ -4,7 +4,6 @@ import {OCI, OCIContainerOptsBuilder} from './oci.js';
 
 const {initialized, running} = ContainerStatus;
 
-
 export const socketPath = `/run/user/${uid}/podman/podman.sock`;
 
 export class ContainerManager extends OCI {
