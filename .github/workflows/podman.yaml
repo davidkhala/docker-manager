@@ -17,7 +17,8 @@ jobs:
     - run: loginctl enable-linger $(whoami)
     - run: podman -v
     - run: sleep 10
-    - run: podman system service --time=0 unix://run/user/${UID}/podman/podman.sock
+    # validating https://github.com/quarckster/blog.misharov.pro/discussions/14#discussioncomment-3556833
+    - run: systemctl restart --user podman podman.socket
     - uses: actions/checkout@v2
     - run: npm i
       working-directory: nodejs
