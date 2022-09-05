@@ -12,6 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - run: systemctl start --user docker
+    - run: |
+          sudo setenforce 0
+          sudo systemctl disable --now docker
+          dockerd-rootless-setuptool.sh install
+          docker context use rootless
     - run: npm i
     - run: npm test

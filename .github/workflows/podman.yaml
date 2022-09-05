@@ -15,7 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: loginctl enable-linger $(whoami)
-      - run: podman -v
       # validating https://github.com/quarckster/blog.misharov.pro/discussions/14#discussioncomment-3556833
       - run: systemctl restart --user podman
       - uses: actions/checkout@v2
