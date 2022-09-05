@@ -14,19 +14,19 @@ jobs:
   nodejs:
     runs-on: ubuntu-latest
     steps:
-    - run: loginctl enable-linger $(whoami)
-    - run: podman -v
-    - run: sleep 10
-    # validating https://github.com/quarckster/blog.misharov.pro/discussions/14#discussioncomment-3556833
-    - run: systemctl restart --user podman podman.socket
-    - uses: actions/checkout@v2
-    - run: npm i
-      working-directory: nodejs
-    - run: npm run podman-test
-      working-directory: nodejs
-    - name: Log in to ghcr.io
-      uses: redhat-actions/podman-login@v1
-      with:
-        username: ${{ env.REGISTRY_USER }}
-        password: ${{ env.REGISTRY_PASSWORD }}
-        registry: ${{ env.IMAGE_REGISTRY }}
+      - run: loginctl enable-linger $(whoami)
+      - run: podman -v
+      - run: sleep 10
+      # validating https://github.com/quarckster/blog.misharov.pro/discussions/14#discussioncomment-3556833
+      - run: systemctl restart --user podman
+      - uses: actions/checkout@v2
+      - run: npm i
+        working-directory: nodejs
+      - run: npm run podman-test
+        working-directory: nodejs
+      - name: Log in to ghcr.io
+        uses: redhat-actions/podman-login@v1
+        with:
+          username: ${{ env.REGISTRY_USER }}
+          password: ${{ env.REGISTRY_PASSWORD }}
+          registry: ${{ env.IMAGE_REGISTRY }}
