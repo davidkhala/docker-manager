@@ -1,4 +1,4 @@
-# khala-dockerode
+# @davidkhala/dockerode
 dockerode utils
 
 
