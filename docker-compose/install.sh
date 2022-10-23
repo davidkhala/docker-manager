@@ -5,4 +5,14 @@ linux-manually() {
 	sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 }
 
+
+RPM() {
+	sudo yum update
+	sudo yum install -y docker-compose-plugin
+}
+dpkg() {
+	sudo apt-get update
+	sudo apt-get install -y docker-compose-plugin
+}
+
 $@
