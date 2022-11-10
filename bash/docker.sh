@@ -20,7 +20,9 @@ imageTrim() {
 buildImage() {
 	local imageName=$1
 	local buildContext=${2:-.}
-	docker build --tag="$imageName" "$buildContext"
+	# --progress=plain --no-cache: to display full output during build
+	# See in: https://stackoverflow.com/questions/52915701/displaying-help-messages-while-docker-build
+	docker build --tag="$imageName" "$buildContext" --progress=plain --no-cache
 }
 bash() {
 	local containerName=$1
