@@ -1,7 +1,8 @@
 image=$1
-Name={$2}
-
+Name=$2
+shift 1
 if [[ -n "$Name" ]]; then
+    shift 1
     docker run -d -p=${hostPort}:${containerPort} --name=${Name} $@ $image
     echo $Name
 else
