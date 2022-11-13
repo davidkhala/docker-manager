@@ -1,6 +1,6 @@
 #!/bin/bash
 
-viewContainerPort() {
+view-container-port() {
 	CMD="docker container port $1 $2"
 	if [[ -n "$2" ]]; then
 		if [[ "$3" == "--ip" ]]; then
@@ -13,11 +13,11 @@ viewContainerPort() {
 	fi
 	$CMD
 }
-imageTrim() {
+image-trim() {
 	#    WARNING! This will remove all images without at least one container associated to them.
 	docker image prune -a
 }
-buildImage() {
+build-image() {
 	local imageName=$1
 	local buildContext=${2:-.}
 	# --progress=plain --no-cache: to display full output during build
@@ -28,11 +28,11 @@ bash() {
 	local containerName=$1
 	docker exec -it "${containerName}" bash
 }
-getID() {
+get-ID() {
 	docker ps --no-trunc -aqf "name=^${1}$"
 }
-logPath() {
-	local containerID=$(getID $1)
+log-path() {
+	local containerID=$(get-ID $1)
 	echo /var/lib/docker/containers/${containerID}/${containerID}-json.log
 }
 $@
