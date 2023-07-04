@@ -1,5 +1,7 @@
 #!/bin/bash
-
+hello-world(){
+	docker run hello-world
+}
 view-container-port() {
 	CMD="docker container port $1 $2"
 	if [[ -n "$2" ]]; then
