@@ -2,6 +2,9 @@
 hello-world(){
 	docker run hello-world
 }
+test-linux-container(){
+	docker run alpine uname
+}
 view-container-port() {
 	CMD="docker container port $1 $2"
 	if [[ -n "$2" ]]; then
