@@ -30,8 +30,7 @@ build-image() {
 	docker build --tag="$imageName" --progress=plain --no-cache "$buildContext" 
 }
 bash() {
-	local containerName=$1
-	docker exec -it "${containerName}" bash
+	docker run -it ubuntu bash
 }
 get-ID() {
 	docker ps --no-trunc -aqf "name=^${1}$"
