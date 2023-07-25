@@ -1,8 +1,8 @@
 #!/bin/bash
-hello-world(){
+hello-world() {
 	docker run hello-world
 }
-test-linux-container(){
+test-linux-container() {
 	docker run alpine uname
 }
 view-container-port() {
