@@ -18,17 +18,7 @@ view-container-port() {
 	fi
 	$CMD
 }
-image-trim() {
-	#    WARNING! This will remove all images without at least one container associated to them.
-	docker image prune -a
-}
-build-image() {
-	local imageName=$1
-	local buildContext=${2:-.}
-	# --progress=plain --no-cache: to display full output during build
-	# See in: https://stackoverflow.com/questions/52915701/displaying-help-messages-while-docker-build
-	docker build --tag="$imageName" --progress=plain --no-cache "$buildContext" 
-}
+
 bash() {
 	docker run -it ubuntu bash
 }
