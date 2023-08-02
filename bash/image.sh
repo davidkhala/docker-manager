@@ -1,6 +1,6 @@
 extract() {
 	local image=$1
-	docker save $image >$2
+	docker save $image > $image.tar
 }
 load() {
 	docker image load --input $1
