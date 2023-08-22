@@ -1,6 +1,7 @@
 import Dockerode from 'dockerode';
 import {Reason} from './constants.js';
 import {sleep} from '@davidkhala/light/index.js';
+import assert from 'assert';
 
 const {ContainerNotFound, VolumeNotFound, NetworkNotFound, ImageNotFound} = Reason;
 
@@ -314,7 +315,21 @@ export class OCIContainerOptsBuilder {
 	 * @returns {OCIContainerOptsBuilder}
 	 */
 	setPortBind(localBind) {
-		const [HostPort, containerPort] = localBind.split(':');
+		let HostPort, containerPort;
+		const tokens = localBind.split(':');
+		switch (tokens.length) {
+			case 0:
+				HostPort = tokens[0];
+				containerPort = tokens[0];
+				break;
+			case 1:
+				HostPort = tokens[0];
+				containerPort = tokens[1];
+				break;
+			default:
+				assert.fail(`invalid localBind string[${localBind}], it should be like 8051:7051`);
+		}
+
 		this.logger.info(`container:${containerPort} => localhost:${HostPort}`);
 		if (!this.opts.ExposedPorts) {
 			this.opts.ExposedPorts = {};
