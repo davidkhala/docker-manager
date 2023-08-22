@@ -1,6 +1,6 @@
 {
   "name": "@davidkhala/dockerode",
-  "version": "1.0.7-beta.3",
+  "version": "1.0.7",
   "license": "Apache-2.0",
   "description": "docker and podman utils",
   "author": {
@@ -18,7 +18,8 @@
   },
   "devDependencies": {
     "mocha": "latest",
-    "@davidkhala/logger": "latest"
+    "@davidkhala/logger": "latest",
+    "eslint": "latest"
   },
   "type": "module"
 }

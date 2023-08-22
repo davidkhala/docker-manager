@@ -19,10 +19,10 @@ const {ContainerNotFound, VolumeNotFound, NetworkNotFound, ImageNotFound} = Reas
  */
 export class OCI {
 	/**
-     *
-     * @param {DockerodeOpts} [opts]
-     * @param [logger]
-     */
+	 *
+	 * @param {DockerodeOpts} [opts]
+	 * @param [logger]
+	 */
 	constructor(opts, logger = console) {
 		if (opts && !opts.protocol && opts.host) {
 			opts.protocol = 'ssh';
@@ -53,10 +53,10 @@ export class OCI {
 	}
 
 	/**
-     *
-     * @param Name
-     * @param path
-     */
+	 *
+	 * @param Name
+	 * @param path
+	 */
 	async volumeCreateIfNotExist({Name, path}) {
 		return this.client.createVolume({
 			Name, Driver: 'local', DriverOpts: {
@@ -82,9 +82,9 @@ export class OCI {
 	}
 
 	/**
-     *
-     * @param {string} containerName
-     */
+	 *
+	 * @param {string} containerName
+	 */
 	async containerDelete(containerName) {
 		const container = this.client.getContainer(containerName);
 		try {
@@ -106,11 +106,15 @@ export class OCI {
 	}
 
 	/**
-     * @param {ContainerOpts} createOptions
-     * @param {number} [retryTimes]
-     */
-	async containerStart(createOptions, retryTimes = 1) {
-		const {name: containerName, Image: imageName} = createOptions;
+	 * @param {ContainerOpts} createOptions
+	 * @param {number} [retryTimes]
+	 * @param {boolean} [imagePullIfNotExist]
+	 */
+	async containerStart(createOptions, retryTimes = 1, imagePullIfNotExist) {
+		const {name: containerName, Image} = createOptions;
+		if (imagePullIfNotExist) {
+			await this.imagePullIfNotExist(Image);
+		}
 		let container = this.client.getContainer(containerName);
 		let info;
 
@@ -233,33 +237,45 @@ export class OCI {
  * @property {string[]} Env
  * @property {string} Cmd
  * @property {string} Image
- * @property {Object} HostConfig
- * sample: {
-            Binds:[
-                `${hostPath}:${containerPath}`
-            ]
-			PortBindings: {
-				'7054': [
-					{
-						HostPort: port.toString()
-					}
-				]
-			}
+ * @property {HostConfig} HostConfig
+ */
 
-		},
+/**
+ * @typedef {Object} HostConfig
+ * @example {
+ * 		Binds:[ `${hostPath}:${containerPath}` ],
+ *  	PortBindings: {
+ *  		'7054': [{HostPort: port.toString()}]
+ *  	}
+ *  }
+ *
+ * @property {string[]} Binds list of `${hostPath}:${containerPath}`
+ * @property {PortBindings} PortBindings
+ */
+
+/**
+ * @typedef {Record<string, HostPort[]>} PortBindings with exposed port number in string format as key
+ */
+
+/**
+ * @typedef {Object} HostPort
+ * @property {string} HostPort port number in string format
+ */
+/**
+ *
  */
 export class OCIContainerOptsBuilder {
 
 	/**
-     *
-     * @param {string} Image
-     * @param {string[]} [Cmd]
-     * @param [logger]
-     */
+	 *
+	 * @param {string} Image
+	 * @param {string[]} [Cmd]
+	 * @param [logger]
+	 */
 	constructor(Image, Cmd, logger = console) {
 		/**
-         * @type {ContainerOpts}
-         */
+		 * @type {ContainerOpts}
+		 */
 		this.opts = {
 			Image, Cmd: Cmd || ['sleep', 'infinity'], HostConfig: {}
 		};
@@ -267,36 +283,36 @@ export class OCIContainerOptsBuilder {
 	}
 
 	/**
-     * @param {string} name
-     * @returns {OCIContainerOptsBuilder}
-     */
+	 * @param {string} name
+	 * @returns {OCIContainerOptsBuilder}
+	 */
 	setName(name) {
 		this.opts.name = name;
 		return this;
 	}
 
 	/**
-     * @param {string[]} Env
-     * @returns {OCIContainerOptsBuilder}
-     */
+	 * @param {string[]} Env
+	 * @returns {OCIContainerOptsBuilder}
+	 */
 	setEnv(Env) {
 		this.opts.Env = Env;
 		return this;
 	}
 
 	/**
-     * @param {object} env
-     * @returns {OCIContainerOptsBuilder}
-     */
+	 * @param {object} env
+	 * @returns {OCIContainerOptsBuilder}
+	 */
 	setEnvObject(env) {
 		this.opts.Env = Object.entries(env).map(([key, value]) => `${key}=${value}`);
 		return this;
 	}
 
 	/**
-     * @param {string} localBind `8051:7051`
-     * @returns {OCIContainerOptsBuilder}
-     */
+	 * @param {string} localBind `8051:7051`
+	 * @returns {OCIContainerOptsBuilder}
+	 */
 	setPortBind(localBind) {
 		const [HostPort, containerPort] = localBind.split(':');
 		this.logger.info(`container:${containerPort} => localhost:${HostPort}`);
@@ -316,11 +332,11 @@ export class OCIContainerOptsBuilder {
 	}
 
 	/**
-     *
-     * @param {string} volumeName or a bind-mount absolute path
-     * @param {string} containerPath
-     * @returns {OCIContainerOptsBuilder}
-     */
+	 *
+	 * @param {string} volumeName or a bind-mount absolute path
+	 * @param {string} containerPath
+	 * @returns {OCIContainerOptsBuilder}
+	 */
 	setVolume(volumeName, containerPath) {
 		if (!this.opts.HostConfig.Binds) {
 			this.opts.HostConfig.Binds = [];
