@@ -100,7 +100,7 @@ export class ContainerManager extends OCI {
 		const onProgress = (event) => {
 			const {status, progress} = event;
 			// docker event
-			this.logger.debug(status, imageName, progress);
+			this.logger.debug(status, imageName, progress || '');
 		};
 
 		return super.imagePull(imageName, onProgress);
