@@ -1,10 +1,17 @@
-import {uid} from '@davidkhala/light/devOps.js';
+import {uid, os} from '@davidkhala/light/devOps.js';
 import {OCI, OCIContainerOptsBuilder} from './oci.js';
 import {Reason, ContainerStatus} from './constants.js';
 
 const {NetworkNotFound} = Reason;
 const {created, running} = ContainerStatus;
-export const socketPath = `/run/user/${uid}/docker.sock`;
+export const socketPath = () => {
+	switch (os.platform) {
+		case 'win32':
+			return '\\\\.\\pipe\\docker_engine'; // provided by Docker Desktop
+		case 'linux':
+			return `/run/user/${uid}/docker.sock`;
+	}
+};
 
 /**
  * @typedef {Object} DockerodeOpts
@@ -16,13 +23,13 @@ export const socketPath = `/run/user/${uid}/docker.sock`;
 
 export class ContainerManager extends OCI {
 
-	constructor(opts = {socketPath}, logger) {
+	constructor(opts = {socketPath: socketPath()}, logger) {
 		super(opts, logger);
 		this.containerStatus.beforeKill = [running];
 		this.containerStatus.afterCreate = [created];
 	}
 
-	async networkCreate({Name}, swarm) {
+	async networkCreate(Name, swarm) {
 		const network = await this.client.createNetwork({
 			Name, CheckDuplicate: true,
 			Driver: swarm ? 'overlay' : 'bridge',
@@ -32,12 +39,12 @@ export class ContainerManager extends OCI {
 		return await network.inspect();
 	}
 
-	async networkCreateIfNotExist({Name}, swarm) {
+	async networkCreateIfNotExist(name, swarm) {
 		try {
-			const network = this.client.getNetwork(Name);
+			const network = this.client.getNetwork(name);
 			const status = await network.inspect();
 			const {Scope, Driver, Containers} = status;
-			this.logger.debug(`network[${Name}] exist`, {
+			this.logger.debug(`network[${name}] exist`, {
 				Scope,
 				Driver,
 				Containers: Containers ? Object.values(Containers).map(({Name}) => Name) : undefined
@@ -45,13 +52,13 @@ export class ContainerManager extends OCI {
 			if ((Scope === 'local' && swarm) || (Scope === 'swarm' && !swarm)) {
 				this.logger.info(`network exist with unwanted ${Scope} ${swarm}`, 're-creating');
 				await network.remove();
-				return await this.networkCreate({Name}, swarm);
+				return await this.networkCreate(name, swarm);
 			}
 			return status;
 		} catch (err) {
 			if (err.statusCode === 404 && err.reason === NetworkNotFound) {
 				this.logger.info(err.json.message, 'creating');
-				return await this.networkCreate({Name}, swarm);
+				return await this.networkCreate(name, swarm);
 			} else {
 				throw err;
 			}
@@ -114,7 +121,7 @@ export class ContainerOptsBuilder extends OCIContainerOptsBuilder {
 		}
 
 		this.opts.HostConfig.ExtraHosts.push(
-			'host.docker.internal:host-gateway',// docker host auto-binding
+			'host.docker.internal:host-gateway', // docker host auto-binding
 		);
 	}
 

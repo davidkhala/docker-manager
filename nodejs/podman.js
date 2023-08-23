@@ -1,14 +1,26 @@
-import {uid} from '@davidkhala/light/devOps.js';
+import {os, uid} from '@davidkhala/light/devOps.js';
 import {ContainerStatus} from './constants.js';
 import {OCI, OCIContainerOptsBuilder} from './oci.js';
 
 const {initialized, running} = ContainerStatus;
 
-export const socketPath = `/run/user/${uid}/podman/podman.sock`;
+export const socketPath = () => {
+	switch (os.platform) {
+		case 'win32':
+			return '\\\\.\\pipe\\docker_engine'; // conflict with Docker Desktop
+		case 'linux':
+			return `/run/user/${uid}/podman/podman.sock`;
+	}
+};
 
 export class ContainerManager extends OCI {
 
-	constructor(opts = {socketPath}, logger) {
+	/**
+	 *
+	 * @param {DockerodeOpts} [opts]
+	 * @param [logger]
+	 */
+	constructor(opts = {socketPath: socketPath()}, logger) {
 		super(opts, logger);
 		this.containerStatus.afterCreate = [initialized];
 		this.containerStatus.beforeKill = [running];

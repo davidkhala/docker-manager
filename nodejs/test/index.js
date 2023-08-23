@@ -1,12 +1,12 @@
-import assert from 'assert'
+import assert from 'assert';
 import {ContainerManager} from '../docker.js';
 
-describe('remote docker', () => {
+describe('docker', () => {
 
-	it('local', async () => {
+	it('ping', async () => {
 		const docker = new ContainerManager();
 		const info = await docker.ping();
-		assert.strictEqual(info, "OK")
+		assert.strictEqual(info, 'OK');
 	});
 
 });

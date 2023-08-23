@@ -12,6 +12,10 @@ const {ContainerNotFound, VolumeNotFound, NetworkNotFound, ImageNotFound} = Reas
  * @property {string} [protocol]
  * @property {string} [host]
  * @property {number} [port]
+ * @property {string} [version] runtime version like v1.39
+ * @property {string} [ca]
+ * @property {string} [cert]
+ * @property {string} [key]
  */
 
 
@@ -318,16 +322,16 @@ export class OCIContainerOptsBuilder {
 		let HostPort, containerPort;
 		const tokens = localBind.split(':');
 		switch (tokens.length) {
-			case 0:
+			case 1:
 				HostPort = tokens[0];
 				containerPort = tokens[0];
 				break;
-			case 1:
+			case 2:
 				HostPort = tokens[0];
 				containerPort = tokens[1];
 				break;
 			default:
-				assert.fail(`invalid localBind string[${localBind}], it should be like 8051:7051`);
+				assert.fail(`invalid localBind string[${localBind}], it should be like 8051:7051 or 7051`);
 		}
 
 		this.logger.info(`container:${containerPort} => localhost:${HostPort}`);
