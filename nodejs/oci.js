@@ -274,15 +274,15 @@ export class OCIContainerOptsBuilder {
 	/**
 	 *
 	 * @param {string} Image
-	 * @param {string[]} [Cmd]
+	 * @param {string[]} [Cmd] the default of CMD should be empty array that it can fall back to image default
 	 * @param [logger]
 	 */
-	constructor(Image, Cmd, logger = console) {
+	constructor(Image, Cmd = [], logger = console) {
 		/**
 		 * @type {ContainerOpts}
 		 */
 		this.opts = {
-			Image, Cmd: Cmd || ['sleep', 'infinity'], HostConfig: {}
+			Image, Cmd, HostConfig: {}
 		};
 		this.logger = logger;
 	}
