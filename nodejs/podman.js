@@ -2,7 +2,7 @@ import {os, uid} from '@davidkhala/light/devOps.js';
 import {ContainerStatus} from './constants.js';
 import {OCI, OCIContainerOptsBuilder} from './oci.js';
 
-const {initialized, running} = ContainerStatus;
+const {initialized, created, running} = ContainerStatus;
 
 export const socketPath = () => {
 	switch (os.platform) {
@@ -22,7 +22,7 @@ export class ContainerManager extends OCI {
 	 */
 	constructor(opts = {socketPath: socketPath()}, logger) {
 		super(opts, logger);
-		this.containerStatus.afterCreate = [initialized];
+		this.containerStatus.afterCreate = [initialized, created];
 		this.containerStatus.beforeKill = [running];
 	}
 
