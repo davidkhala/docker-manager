@@ -10,6 +10,8 @@ export const socketPath = () => {
 			return '\\\\.\\pipe\\docker_engine'; // provided by Docker Desktop
 		case 'linux':
 			return `/run/user/${uid}/docker.sock`;
+		case 'darwin':
+			return '/var/run/docker.sock';
 	}
 };
 
