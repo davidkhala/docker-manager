@@ -320,6 +320,9 @@ export class OCIContainerOptsBuilder {
 	 */
 	setPortBind(localBind) {
 		let HostPort, containerPort;
+		if (Number.isInteger(localBind)) {
+			localBind = localBind.toString();
+		}
 		const tokens = localBind.split(':');
 		switch (tokens.length) {
 			case 1:
