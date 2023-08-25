@@ -153,6 +153,7 @@ export class OCI {
 		if (this.containerStatus.afterCreate.includes(info.State.Status)) {
 			await start(container, retryTimes);
 			info = await container.inspect();
+			assert.ok(this.containerStatus.beforeKill.includes(info.State.Status));
 		}
 		return info;
 	}
@@ -278,6 +279,7 @@ export class OCIContainerOptsBuilder {
 	 * @param [logger]
 	 */
 	constructor(Image, Cmd = [], logger = console) {
+		assert.ok(Array.isArray(Cmd), `Cmd should be array, but got ${Cmd}`);
 		/**
 		 * @type {ContainerOpts}
 		 */
