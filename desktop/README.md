@@ -1,3 +1,7 @@
+# Docker Desktop for linux
+- https://docs.docker.com/desktop/install/linux-install/
+- Docker Desktop on Linux runs a Virtual Machine (VM) so creates and uses a custom docker context `desktop-linux` on startup.
+  - images and containers deployed on the Linux Docker Engine (before installation) are not available in Docker Desktop for Linux.
 # Docker Desktop alternative
 - Podman
 - Moby: Docker Engine
