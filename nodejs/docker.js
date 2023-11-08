@@ -3,7 +3,7 @@ import {OCI, OCIContainerOptsBuilder} from './oci.js';
 import {Reason, ContainerStatus} from './constants.js';
 
 const {NetworkNotFound} = Reason;
-const {created, running} = ContainerStatus;
+const {created, running, exited} = ContainerStatus;
 export const socketPath = () => {
 	switch (os.platform) {
 		case 'win32':
@@ -28,7 +28,7 @@ export class ContainerManager extends OCI {
 	constructor(opts = {socketPath: socketPath()}, logger) {
 		super(opts, logger);
 		this.containerStatus.afterCreate = [created];
-		this.containerStatus.beforeKill = [running];
+		this.containerStatus.beforeKill = [running, exited];
 	}
 
 	async networkCreate(Name, swarm) {

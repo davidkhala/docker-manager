@@ -153,7 +153,8 @@ export class OCI {
 		if (this.containerStatus.afterCreate.includes(info.State.Status)) {
 			await start(container, retryTimes);
 			info = await container.inspect();
-			assert.ok(this.containerStatus.beforeKill.includes(info.State.Status), `but got status ${info.State.Status}`);
+			assert.ok(this.containerStatus.beforeKill.includes(info.State.Status),
+				`should be one of [${this.containerStatus.beforeKill}], but got status ${info.State.Status}`);
 		}
 		return info;
 	}
