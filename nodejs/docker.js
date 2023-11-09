@@ -27,8 +27,6 @@ export class ContainerManager extends OCI {
 
 	constructor(opts = {socketPath: socketPath()}, logger) {
 		super(opts, logger);
-		this.containerStatus.afterCreate = [created];
-		this.containerStatus.beforeKill = [running, exited];
 	}
 
 	async networkCreate(Name, swarm) {
@@ -108,6 +106,17 @@ export class ContainerManager extends OCI {
 	}
 
 
+	_afterCreate() {
+		return [created];
+	}
+
+	_afterStart() {
+		return [running, exited];
+	}
+
+	_beforeKill() {
+		return [running];
+	}
 }
 
 export class ContainerOptsBuilder extends OCIContainerOptsBuilder {

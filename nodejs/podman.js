@@ -2,7 +2,7 @@ import {os, uid} from '@davidkhala/light/devOps.js';
 import {ContainerStatus} from './constants.js';
 import {OCI, OCIContainerOptsBuilder} from './oci.js';
 
-const {initialized, created, running} = ContainerStatus;
+const {initialized, created, running, exited} = ContainerStatus;
 
 export const socketPath = () => {
 	switch (os.platform) {
@@ -22,8 +22,6 @@ export class ContainerManager extends OCI {
 	 */
 	constructor(opts = {socketPath: socketPath()}, logger) {
 		super(opts, logger);
-		this.containerStatus.afterCreate = [initialized, created];
-		this.containerStatus.beforeKill = [running];
 	}
 
 	async networkCreate({Name}, rootless) {
@@ -46,6 +44,18 @@ export class ContainerManager extends OCI {
 
 	}
 
+	_afterCreate() {
+
+		return [initialized, created];
+	}
+
+	_afterStart() {
+		return [running, exited];
+	}
+
+	_beforeKill() {
+		return [running];
+	}
 }
 
 export class ContainerOptsBuilder extends OCIContainerOptsBuilder {

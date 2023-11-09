@@ -1,10 +1,10 @@
 import Dockerode from 'dockerode';
-import {Reason} from './constants.js';
+import {Reason, ContainerStatus} from './constants.js';
 import {sleep} from '@davidkhala/light/index.js';
 import assert from 'assert';
 
 const {ContainerNotFound, VolumeNotFound, NetworkNotFound, ImageNotFound} = Reason;
-
+const {exited, running, created} = ContainerStatus;
 
 /**
  * @typedef {Object} DockerodeOpts
@@ -42,9 +42,6 @@ export class OCI {
 				await this.client.pruneVolumes();
 				await this.client.pruneNetworks();
 			}
-		};
-		this.containerStatus = {
-			afterCreate: [], beforeKill: []
 		};
 	}
 
@@ -96,7 +93,7 @@ export class OCI {
 			const containInfo = await container.inspect();
 			const currentStatus = containInfo.State.Status;
 			this.logger.debug('delete container', containerName, currentStatus);
-			if (this.containerStatus.beforeKill.includes(currentStatus)) {
+			if (this._beforeKill().includes(currentStatus)) {
 				await container.kill();
 			}
 			return await container.remove();
@@ -150,11 +147,11 @@ export class OCI {
 			}
 		};
 
-		if (this.containerStatus.afterCreate.includes(info.State.Status)) {
+		if (this._afterCreate().includes(info.State.Status)) {
 			await start(container, retryTimes);
 			info = await container.inspect();
-			assert.ok(this.containerStatus.beforeKill.includes(info.State.Status),
-				`should be one of [${this.containerStatus.beforeKill}], but got status ${info.State.Status}`);
+			assert.ok(this._afterStart().includes(info.State.Status),
+				`should be one of [${this._afterStart()}], but got status ${info.State.Status}`);
 		}
 		return info;
 	}
@@ -234,6 +231,36 @@ export class OCI {
 			this.client.modem.followProgress(stream, onFinished, onProgressCallback);
 		});
 
+	}
+
+	/**
+	 * expected status after container created
+	 * @abstract
+	 * @private
+	 * @return string[]
+	 */
+	_afterCreate() {
+		return [created];
+	}
+
+	/**
+	 * expected status after container started
+	 * @abstract
+	 * @private
+	 * @return string[]
+	 */
+	_afterStart() {
+		return [running, exited];
+	}
+
+	/**
+	 * expected status before killing container
+	 * @abstract
+	 * @private
+	 * @return string[]
+	 */
+	_beforeKill() {
+		return [running];
 	}
 }
 

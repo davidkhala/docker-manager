@@ -8,7 +8,7 @@ export const ContainerStatus = {
 	running: 'running',
 	removing: 'removing',
 	paused: 'paused',
-	exited: 'exited',
+	exited: 'exited', // for short life image like 'hello-world'
 	dead: 'dead',
 	initialized: 'initialized', // podman alternative of 'created' for some image
 };
