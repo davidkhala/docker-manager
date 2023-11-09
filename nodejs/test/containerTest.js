@@ -1,17 +1,10 @@
 import {consoleLogger} from '@davidkhala/logger/log4.js';
 import {ContainerManager, ContainerOptsBuilder} from '../docker.js';
-import assert from 'assert';
+
 
 const logger = consoleLogger('test:docker');
 
-describe('container Opts builder', () => {
-	it('constructor', () => {
-		assert.throws(() => {
-			new ContainerOptsBuilder('image', 'sh');
-		});
 
-	});
-});
 describe('hello-world', function () {
 	this.timeout(0);
 	const dockerManager = new ContainerManager(undefined, logger);

@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
-fcn=$1
-remain_params=""
-for ((i = 2; i <= $#; i++)); do
-	j=${!i}
-	remain_params="$remain_params $j"
-done
+
 createLocal() {
 	local name=$1
 	local path=$2
@@ -13,4 +8,4 @@ createLocal() {
 delete() {
 	docker volume rm --force $1
 }
-${fcn} ${remain_params}
+"$@"

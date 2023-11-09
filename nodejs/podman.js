@@ -1,6 +1,6 @@
 import {os, uid} from '@davidkhala/light/devOps.js';
-import {ContainerStatus} from './constants.js';
-import {OCI, OCIContainerOptsBuilder} from './oci.js';
+import {ContainerStatus} from '@davidkhala/container/constants.js';
+import {OCI, OCIContainerOptsBuilder} from '@davidkhala/container/oci.js';
 
 const {initialized, created, running, exited} = ContainerStatus;
 

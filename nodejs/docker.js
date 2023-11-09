@@ -1,6 +1,6 @@
 import {uid, os} from '@davidkhala/light/devOps.js';
-import {OCI, OCIContainerOptsBuilder} from './oci.js';
-import {Reason, ContainerStatus} from './constants.js';
+import {OCI, OCIContainerOptsBuilder} from '@davidkhala/container/oci.js';
+import {Reason, ContainerStatus} from '@davidkhala/container/constants.js';
 
 const {NetworkNotFound} = Reason;
 const {created, running, exited} = ContainerStatus;

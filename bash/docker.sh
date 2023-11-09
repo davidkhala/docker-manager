@@ -3,12 +3,18 @@ host-info(){
 	docker system info --format '{{.OSType}}/{{.Architecture}}'
 }
 
-hello-world() {
-	docker run hello-world
+rootless(){
+  # NOTE PLEASE run this without 'sudo', otherwise ENV $USER will be 'root' instead of current user.
+  echo "See in https://docs.docker.com/engine/security/rootless/"
+  curl -fsSL https://get.docker.com/rootless | sh
+  export DOCKER_HOST=unix:///run/user/$UID/docker.sock
 }
-test-linux-container() {
-	docker run alpine uname
+rootfull(){
+  sudo groupadd docker
+  sudo usermod -aG docker $USER
+  newgrp docker
 }
+
 view-container-port() {
 	CMD="docker container port $1 $2"
 	if [[ -n "$2" ]]; then

@@ -1,4 +1,13 @@
-image=$1
+
+hello-world() {
+	docker run hello-world
+}
+test-linux-container() {
+	docker run alpine uname
+}
+
+container(){
+  image=$1
 Name=$2
 shift 1
 if [[ -n "$Name" ]]; then
@@ -9,3 +18,6 @@ else
     # Ref: https://stackoverflow.com/questions/71083248/how-to-return-random-generated-name-instead-of-id-when-starting-docker-container
     docker run -d -p=${hostPort}:${containerPort} $@ $image | xargs docker container inspect -f '{{ slice .Name 1 }}'
 fi
+}
+"$@"
+
