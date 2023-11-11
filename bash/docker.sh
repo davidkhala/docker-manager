@@ -10,7 +10,7 @@ rootless-install(){
   export DOCKER_HOST=unix:///run/user/$UID/docker.sock
 }
 
-rootfull(){
+rootfull-mode(){
   # uninstall rootless
   dockerd-rootless-setuptool.sh check
   dockerd-rootless-setuptool.sh uninstall
