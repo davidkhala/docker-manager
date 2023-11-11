@@ -12,8 +12,10 @@ rootless-install(){
 
 rootfull-mode(){
   # uninstall rootless
-  dockerd-rootless-setuptool.sh check
-  dockerd-rootless-setuptool.sh uninstall
+  if dockerd-rootless-setuptool.sh check ; then
+  	dockerd-rootless-setuptool.sh uninstall
+  fi
+  
   
   sudo groupadd docker
   sudo usermod -aG docker $USER
