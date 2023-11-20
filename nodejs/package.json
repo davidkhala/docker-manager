@@ -20,5 +20,8 @@
     "@davidkhala/logger": "latest",
     "eslint": "latest"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module"
 }

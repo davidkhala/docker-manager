@@ -1,5 +1,5 @@
-# @davidkhala/dockerode
-dockerode utils
+# @davidkhala/docker
+docker utils
 
 
 
