@@ -31,10 +31,7 @@ export class ContainerManager extends OCI {
 
 	async networkCreate(Name, swarm) {
 		const network = await this.client.createNetwork({
-			Name, CheckDuplicate: true,
-			Driver: swarm ? 'overlay' : 'bridge',
-			Internal: false,
-			Attachable: true
+			Name, CheckDuplicate: true, Driver: swarm ? 'overlay' : 'bridge', Internal: false, Attachable: true
 		});
 		return await network.inspect();
 	}
@@ -45,9 +42,7 @@ export class ContainerManager extends OCI {
 			const status = await network.inspect();
 			const {Scope, Driver, Containers} = status;
 			this.logger.debug(`network[${name}] exist`, {
-				Scope,
-				Driver,
-				Containers: Containers ? Object.values(Containers).map(({Name}) => Name) : undefined
+				Scope, Driver, Containers: Containers ? Object.values(Containers).map(({Name}) => Name) : undefined
 			});
 			if ((Scope === 'local' && swarm) || (Scope === 'swarm' && !swarm)) {
 				this.logger.info(`network exist with unwanted ${Scope} ${swarm}`, 're-creating');
@@ -131,8 +126,7 @@ export class ContainerOptsBuilder extends OCIContainerOptsBuilder {
 			this.opts.HostConfig.ExtraHosts = [];
 		}
 
-		this.opts.HostConfig.ExtraHosts.push(
-			'host.docker.internal:host-gateway', // docker host auto-binding
+		this.opts.HostConfig.ExtraHosts.push('host.docker.internal:host-gateway', // docker host auto-binding
 		);
 	}
 
