@@ -3,25 +3,6 @@ host-info(){
 	docker system info --format '{{.OSType}}/{{.Architecture}}'
 }
 
-rootless-install(){
-  # NOTE PLEASE run this without 'sudo', otherwise ENV $USER will be 'root' instead of current user.
-  # See in https://docs.docker.com/engine/security/rootless/
-  curl -fsSL https://get.docker.com/rootless | sh
-  export DOCKER_HOST=unix:///run/user/$UID/docker.sock
-}
-
-rootfull-mode(){
-  # uninstall rootless
-  if dockerd-rootless-setuptool.sh check ; then
-  	dockerd-rootless-setuptool.sh uninstall
-  fi
-  
-  
-  sudo groupadd docker
-  sudo usermod -aG docker $USER
-  newgrp docker
-}
-
 view-container-port() {
 	CMD="docker container port $1 $2"
 	if [[ -n "$2" ]]; then
