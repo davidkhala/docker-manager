@@ -27,4 +27,7 @@ log-path() {
 	local containerID=$(get-ID $1)
 	echo /var/lib/docker/containers/${containerID}/${containerID}-json.log
 }
+monitor(){
+	docker stats
+}
 $@
