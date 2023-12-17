@@ -3,29 +3,53 @@ import {ContainerManager, ContainerOptsBuilder} from '../docker.js';
 
 
 const logger = consoleLogger('test:docker');
-
+const manager = new ContainerManager(undefined, logger);
 
 describe('hello-world', function () {
 	this.timeout(0);
-	const dockerManager = new ContainerManager(undefined, logger);
+
 	const imageName = 'hello-world';
 	const containerName = imageName;
 	before(async () => {
-		await dockerManager.imagePull(imageName);
+		await manager.imagePull(imageName);
 	});
-	it('container start:restart', async () => {
+	it('container start,restart,exec', async () => {
 
 		const containerOptsBuilder = new ContainerOptsBuilder(imageName, []);
 		containerOptsBuilder.setName(containerName);
 		const {opts} = containerOptsBuilder;
-		await dockerManager.containerStart(opts);
-		await dockerManager.containerRestart(containerName);
+		await manager.containerStart(opts);
+		await manager.containerRestart(containerName);
 	});
 	after(async () => {
-		await dockerManager.containerDelete(containerName);
-		await dockerManager.imageDelete(imageName);
+		await manager.containerDelete(containerName);
+		await manager.imageDelete(imageName);
 	});
 
+});
+describe('fabric-tools', function () {
+	this.timeout(0);
+	const imageName = 'hyperledger/fabric-tools';
+	const containerName = 'cli';
+	before(async () => {
+		const containerOptsBuilder = new ContainerOptsBuilder(imageName, ['cat']);
+		containerOptsBuilder.setName(containerName);
+		containerOptsBuilder.setTTY(true);
+		const {opts} = containerOptsBuilder;
+		opts.AttachStdin = true;
+		opts.AttachStdout = true;
+
+		await manager.containerStart(opts);
+	});
+	it('container exec', async () => {
+		const Cmd = ['echo', 'x'];
+
+		const result = await manager.containerExec(containerName, {Cmd});
+		console.info(result);
+	});
+	after(async () => {
+		await manager.containerDelete(containerName);
+	});
 });
 describe('postgres', function () {
 	this.timeout(0);
@@ -39,7 +63,7 @@ describe('postgres', function () {
 		opts.setPortBind(`${HostPort}:5432`);
 		opts.setName(Image);
 		opts.setEnv([`POSTGRES_PASSWORD=${password}`]);
-		let info = await manager.containerStart(opts.opts, undefined, true);
+		const info = await manager.containerStart(opts.opts, undefined, true);
 		console.debug(info);
 		await manager.containerDelete(Image);
 	});

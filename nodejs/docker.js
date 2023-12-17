@@ -1,6 +1,8 @@
 import {uid, os} from '@davidkhala/light/devOps.js';
 import {OCI, OCIContainerOptsBuilder} from '@davidkhala/container/oci.js';
 import {Reason, ContainerStatus} from '@davidkhala/container/constants.js';
+import stream from 'stream';
+import streamPromises from 'stream/promises';
 
 const {NetworkNotFound} = Reason;
 const {created, running, exited} = ContainerStatus;
@@ -70,11 +72,38 @@ export class ContainerManager extends OCI {
 		await container.restart();
 	}
 
-	async containerExec({container_name, Cmd}) {
+	async containerExec(container_name, opts) {
+		const {Cmd} = opts;
 		const container = this.client.getContainer(container_name);
-		const exec = await container.exec({Cmd});
-		await exec.start();
-		return await exec.inspect();
+		const exec = await container.exec(Object.assign({
+			AttachStderr: true,
+			AttachStdout: true,
+			Cmd,
+		}, opts));
+
+		const dockerExecStream = await exec.start({});
+
+		const stdoutStream = new stream.PassThrough();
+		const stderrStream = new stream.PassThrough();
+
+		this.client.modem.demuxStream(dockerExecStream, stdoutStream, stderrStream);
+
+		dockerExecStream.resume();
+
+		await streamPromises.finished(dockerExecStream);
+
+		const stderr = stderrStream.read();
+		const stdout = stdoutStream.read();
+
+		const {ExitCode} = await exec.inspect();
+
+		if (stderr || ExitCode !== 0) {
+			const err = Error(stderr.toString());
+			err.code = ExitCode;
+			throw err;
+		}
+		return stdout && stdout.toString();
+
 	}
 
 	/**
