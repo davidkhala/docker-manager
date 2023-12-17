@@ -92,17 +92,21 @@ export class ContainerManager extends OCI {
 
 		await streamPromises.finished(dockerExecStream);
 
-		const stderr = stderrStream.read();
-		const stdout = stdoutStream.read();
+		const stderr = stderrStream.read() || '';// read might return null
+		const stdout = stdoutStream.read() || '';// read might return null
+		const errStr = stderr.toString();
+		const outStr = stdout.toString();
 
 		const {ExitCode} = await exec.inspect();
 
 		if (stderr || ExitCode !== 0) {
-			const err = Error(stderr.toString());
+			const err = Error(errStr);
 			err.code = ExitCode;
+			err.stderr = errStr;
+			err.stdout = outStr;
 			throw err;
 		}
-		return stdout && stdout.toString();
+		return outStr;
 
 	}
 

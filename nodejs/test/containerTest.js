@@ -1,3 +1,4 @@
+import assert from 'assert';
 import {consoleLogger} from '@davidkhala/logger/log4.js';
 import {ContainerManager, ContainerOptsBuilder} from '../docker.js';
 
@@ -42,10 +43,8 @@ describe('fabric-tools', function () {
 		await manager.containerStart(opts);
 	});
 	it('container exec', async () => {
-		const Cmd = ['echo', 'x'];
-
-		const result = await manager.containerExec(containerName, {Cmd});
-		console.info(result);
+		const result = await manager.containerExec(containerName, {Cmd: ['echo', 'x']});
+		assert.equal(result, 'x\n');
 	});
 	after(async () => {
 		await manager.containerDelete(containerName);
@@ -53,7 +52,6 @@ describe('fabric-tools', function () {
 });
 describe('postgres', function () {
 	this.timeout(0);
-	const manager = new ContainerManager(undefined, logger);
 	const HostPort = 6432;
 	const password = 'password';
 	it('container start, stop', async () => {
