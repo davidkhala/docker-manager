@@ -33,6 +33,7 @@ describe('fabric-tools', function () {
 	const imageName = 'hyperledger/fabric-tools';
 	const containerName = 'cli';
 	before(async () => {
+		await manager.imagePull(imageName)
 		const containerOptsBuilder = new ContainerOptsBuilder(imageName, ['cat']);
 		containerOptsBuilder.setName(containerName);
 		containerOptsBuilder.setTTY(true);
