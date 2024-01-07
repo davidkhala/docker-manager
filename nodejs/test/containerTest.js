@@ -18,7 +18,7 @@ describe('hello-world', function () {
 	it('container start,restart,exec', async () => {
 
 		const containerOptsBuilder = new ContainerOptsBuilder(imageName, []);
-		containerOptsBuilder.setName(containerName);
+		containerOptsBuilder.name = containerName;
 		const {opts} = containerOptsBuilder;
 		await manager.containerStart(opts);
 		await manager.containerRestart(containerName);
@@ -66,9 +66,15 @@ describe('busy box', function () {
 
 	});
 	it('ping', async () => {
+		try {
+			const result = await manager.containerExec(containerName, {Cmd: ping('google.com', 3)});
+			console.info(result);
+		} catch (e) {
+			console.error(e);
+			throw e;
+		}
 
-		const result = await manager.containerExec(containerName, {Cmd: ping('google.com', 3)});
-		console.info(result);
+
 	});
 	after(async () => {
 		await manager.containerDelete(containerName);
@@ -83,8 +89,8 @@ describe('postgres', function () {
 		const opts = new ContainerOptsBuilder(Image, []); // ['postgres']
 
 		opts.setPortBind(`${HostPort}:5432`);
-		opts.setName(Image);
-		opts.setEnv([`POSTGRES_PASSWORD=${password}`]);
+		opts.name = Image;
+		opts.env = [`POSTGRES_PASSWORD=${password}`];
 		const info = await manager.containerStart(opts.opts, undefined, true);
 		console.debug(info);
 		await manager.containerDelete(Image);
