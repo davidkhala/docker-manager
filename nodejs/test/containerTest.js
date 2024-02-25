@@ -65,17 +65,17 @@ describe('busy box', function () {
 		await manager.containerStart(opts);
 
 	});
-	it('ping', async () => {
-		try {
+	if (!process.env.GITHUB_ACTIONS) {
+		// github runner in Azure doesn't allow ping
+		it('ping', async () => {
 			const result = await manager.containerExec(containerName, {Cmd: ping('google.com', 3)});
-			console.info(result);
-		} catch (e) {
-			console.error(e);
-			throw e;
-		}
+			assert.ok(result.includes('PING google.com'));
+			assert.ok(result.includes('--- google.com ping statistics ---'));
+
+		});
+	}
 
 
-	});
 	after(async () => {
 		await manager.containerDelete(containerName);
 	});
