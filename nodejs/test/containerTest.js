@@ -88,6 +88,7 @@ describe('postgres', function () {
 		const Image = 'postgres';
 		const opts = new ContainerOptsBuilder(Image, []); // ['postgres']
 
+		opts.setHealthCheck(true, 'pg_isready -U postgres'); // "pg_isready -h localhost -p 5432 -q -U postgres"
 		opts.setPortBind(`${HostPort}:5432`);
 		opts.name = Image;
 		opts.env = [`POSTGRES_PASSWORD=${password}`];
