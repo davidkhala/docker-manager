@@ -11,8 +11,23 @@ jobs:
         working-directory: nodejs
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@main
     - name: Use Docker in rootless mode.
       uses: ScribeMD/rootless-docker@main
     - run: npm i
     - run: npm test
+  runner:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo curl --unix-socket /var/run/docker.sock http://localhost/_ping
+      - run: sudo sed -i 's|-H fd://||' /etc/systemd/system/docker.service.d/docker.conf
+      - run: cat /etc/systemd/system/docker.service.d/docker.conf
+        if: always()
+      - run: cat /etc/docker/daemon.json |  jq '.hosts=["unix:///var/run/docker.sock","tcp://127.0.0.1:2375", "tcp://0.0.0.0:2376"]' | sudo tee /etc/docker/daemon.json
+      - run: sudo systemctl stop docker
+      - run: sudo systemctl daemon-reload
+      - run: sudo systemctl start docker
+      - run: sudo systemctl status docker
+        if: always()
+      - run: docker -H tcp://127.0.0.1:2375 ps
+      - run: curl http://localhost:2375/_ping

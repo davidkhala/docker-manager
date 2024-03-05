@@ -92,7 +92,7 @@ describe('postgres', function () {
 		opts.setPortBind(`${HostPort}:5432`);
 		opts.name = Image;
 		opts.env = [`POSTGRES_PASSWORD=${password}`];
-		const info = await manager.containerStart(opts.opts, undefined, true);
+		const info = await manager.containerStart(opts.opts, true);
 		console.debug(info);
 		await manager.containerDelete(Image);
 	});
