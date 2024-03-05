@@ -22,10 +22,7 @@ jobs:
       - run: sudo curl --unix-socket /var/run/docker.sock http://localhost/_ping
       - run: sudo curl https://raw.githubusercontent.com/davidkhala/linux-utils/main/apps/docker/docker.conf --create-dirs -o /etc/systemd/system/docker.service.d/docker.conf
       - run: cat /etc/docker/daemon.json |  jq '.hosts=["unix:///var/run/docker.sock","tcp://127.0.0.1:2375", "tcp://0.0.0.0:2376"]' | sudo tee /etc/docker/daemon.json
-      - run: sudo systemctl stop docker
       - run: sudo systemctl daemon-reload
-      - run: sudo systemctl start docker
-      - run: sudo systemctl status docker
-        if: always()
+      - run: sudo systemctl restart docker
       - run: docker -H tcp://127.0.0.1:2375 ps
       - run: curl http://localhost:2375/_ping
