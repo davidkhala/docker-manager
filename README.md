@@ -2,7 +2,8 @@
 
 ## Install Docker
 
-For Linux, see in [linux-utils/apps/docker.sh](https://github.com/davidkhala/linux-utils/blob/main/apps/docker.sh)
+For Linux, see in [linux-utils/apps/docker/install.sh](https://github.com/davidkhala/linux-utils/blob/main/apps/docker/install.sh)
+
 ```
-curl https://raw.githubusercontent.com/davidkhala/linux-utils/main/apps/docker.sh | bash -s install
+curl https://raw.githubusercontent.com/davidkhala/linux-utils/main/apps/docker/install.sh | bash -s install
 ```
