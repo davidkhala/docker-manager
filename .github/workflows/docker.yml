@@ -20,9 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: sudo curl --unix-socket /var/run/docker.sock http://localhost/_ping
-      - run: sudo sed -i 's|-H fd://||' /etc/systemd/system/docker.service.d/docker.conf
-      - run: cat /etc/systemd/system/docker.service.d/docker.conf
-        if: always()
+      - run: sudo curl https://raw.githubusercontent.com/davidkhala/linux-utils/main/apps/docker/docker.conf --create-dirs -o /etc/systemd/system/docker.service.d/docker.conf
       - run: cat /etc/docker/daemon.json |  jq '.hosts=["unix:///var/run/docker.sock","tcp://127.0.0.1:2375", "tcp://0.0.0.0:2376"]' | sudo tee /etc/docker/daemon.json
       - run: sudo systemctl stop docker
       - run: sudo systemctl daemon-reload
