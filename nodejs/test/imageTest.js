@@ -1,16 +1,18 @@
-import {consoleLogger} from '@davidkhala/logger/log4.js'
+import {consoleLogger} from '@davidkhala/logger/log4.js';
+
 const logger = consoleLogger('test:docker');
 import {ContainerManager} from '../docker.js';
-describe('docker image', () => {
+
+describe('docker image', function () {
+	this.timeout(0);
 	const dockerManager = new ContainerManager(undefined, logger);
-	it('pull hello-world', async function () {
-		this.timeout(30000);
+	it('pull hello-world', async () => {
+
 		const imageName = 'hello-world';
 		await dockerManager.imagePull(imageName);
 		await dockerManager.imageDelete(imageName);
 	});
-	it('pull if not exist', async function () {
-		this.timeout(30000);
+	it('pull if not exist', async () => {
 		const imageName = 'hello-world';
 		await dockerManager.imagePullIfNotExist(imageName);
 		await dockerManager.imagePullIfNotExist(imageName);

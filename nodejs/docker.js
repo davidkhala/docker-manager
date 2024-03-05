@@ -1,21 +1,13 @@
-import {uid, os} from '@davidkhala/light/devOps.js';
-import {OCI, OCIContainerOptsBuilder} from '@davidkhala/container/oci.js';
+import {socketPath} from './constants.js';
+import {OCI} from '@davidkhala/container/oci.js';
+import {OCIContainerOptsBuilder} from '@davidkhala/container/options.js';
 import {Reason, ContainerStatus} from '@davidkhala/container/constants.js';
 import stream from 'stream';
 import streamPromises from 'stream/promises';
 
 const {NetworkNotFound} = Reason;
 const {created, running, exited} = ContainerStatus;
-export const socketPath = () => {
-	switch (os.platform) {
-		case 'win32':
-			return '\\\\.\\pipe\\docker_engine'; // provided by Docker Desktop
-		case 'linux':
-			return `/run/user/${uid}/docker.sock`;
-		case 'darwin':
-			return '/var/run/docker.sock';
-	}
-};
+
 
 /**
  * @typedef {Object} DockerodeOpts
@@ -27,6 +19,11 @@ export const socketPath = () => {
 
 export class ContainerManager extends OCI {
 
+	/**
+	 *
+	 * @param {DockerodeOpts} [opts]
+	 * @param [logger]
+	 */
 	constructor(opts = {socketPath: socketPath()}, logger) {
 		super(opts, logger);
 	}
