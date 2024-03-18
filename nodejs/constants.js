@@ -1,11 +1,11 @@
 import {uid, os} from '@davidkhala/light/devOps.js';
 
-export const socketPath = () => {
+export const socketPath = (rootful) => {
 	switch (os.platform) {
 		case 'win32':
 			return '\\\\.\\pipe\\docker_engine'; // provided by Docker Desktop
 		case 'linux':
-			return `/run/user/${uid}/docker.sock`;
+			return rootful ? '/var/run/docker.sock' : `/run/user/${uid}/docker.sock`;
 		case 'darwin':
 			return '/var/run/docker.sock';
 	}
