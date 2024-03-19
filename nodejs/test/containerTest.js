@@ -2,6 +2,7 @@ import assert from 'assert';
 import {consoleLogger} from '@davidkhala/logger/log4.js';
 import {ContainerManager, ContainerOptsBuilder} from '../docker.js';
 import {hang, ping} from '../cmd.js';
+import os from 'os';
 
 
 const logger = consoleLogger('test:docker');
@@ -29,29 +30,33 @@ describe('hello-world', function () {
 	});
 
 });
-describe('fabric-tools', function () {
-	this.timeout(0);
-	const imageName = 'hyperledger/fabric-tools';
-	const containerName = 'cli';
-	before(async () => {
-		await manager.imagePull(imageName);
-		const containerOptsBuilder = new ContainerOptsBuilder(imageName, ['cat']);
-		containerOptsBuilder.name = containerName;
-		containerOptsBuilder.tty = true;
-		const {opts} = containerOptsBuilder;
-		opts.AttachStdin = true;
-		opts.AttachStdout = true;
+if (!(process.env.CI && os.platform() === 'win32')) {
 
-		await manager.containerStart(opts);
+	describe('fabric-tools', function () {
+		this.timeout(0);
+		const imageName = 'hyperledger/fabric-tools';
+		const containerName = 'cli';
+		before(async () => {
+			await manager.imagePull(imageName);
+			const containerOptsBuilder = new ContainerOptsBuilder(imageName, ['cat']);
+			containerOptsBuilder.name = containerName;
+			containerOptsBuilder.tty = true;
+			const {opts} = containerOptsBuilder;
+			opts.AttachStdin = true;
+			opts.AttachStdout = true;
+
+			await manager.containerStart(opts);
+		});
+		it('container exec', async () => {
+			const result = await manager.containerExec(containerName, {Cmd: ['echo', 'x']});
+			assert.equal(result, 'x\n');
+		});
+		after(async () => {
+			await manager.containerDelete(containerName);
+		});
 	});
-	it('container exec', async () => {
-		const result = await manager.containerExec(containerName, {Cmd: ['echo', 'x']});
-		assert.equal(result, 'x\n');
-	});
-	after(async () => {
-		await manager.containerDelete(containerName);
-	});
-});
+}
+
 describe('busy box', function () {
 	this.timeout(0);
 	const imageName = 'busybox';

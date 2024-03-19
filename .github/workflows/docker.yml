@@ -26,3 +26,8 @@ jobs:
     runs-on: windows-latest
     steps:
       - run: docker context inspect default
+      - uses: actions/checkout@main
+      - run: npm i
+        working-directory: nodejs
+      - run: npm test
+        working-directory: nodejs
