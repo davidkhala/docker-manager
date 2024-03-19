@@ -66,7 +66,7 @@ describe('busy box', function () {
 
 	});
 	if (!process.env.GITHUB_ACTIONS) {
-		// github runner in Azure doesn't allow ping
+		// GitHub runner in Azure doesn't allow ping
 		it('ping', async () => {
 			const result = await manager.containerExec(containerName, {Cmd: ping('google.com', 3)});
 			assert.ok(result.includes('PING google.com'));

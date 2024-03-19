@@ -20,5 +20,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: sudo curl --unix-socket /var/run/docker.sock http://localhost/_ping
-      - run: curl https://raw.githubusercontent.com/davidkhala/linux-utils/main/apps/docker/daemon.sh | bash -s expose
+      - run: curl https://raw.githubusercontent.com/davidkhala/linux-utils/main/apps/docker/daemon.sh | bash -s expose-http
       - run: curl http://localhost:2375/_ping
