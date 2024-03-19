@@ -5,7 +5,7 @@ on:
 
 jobs:
 
-  nodejs:
+  nodejs-rootless:
     defaults:
       run:
         working-directory: nodejs
@@ -16,9 +16,13 @@ jobs:
       uses: ScribeMD/rootless-docker@main
     - run: npm i
     - run: npm test
-  runner:
+  runner-ubuntu:
     runs-on: ubuntu-latest
     steps:
       - run: sudo curl --unix-socket /var/run/docker.sock http://localhost/_ping
       - run: curl https://raw.githubusercontent.com/davidkhala/linux-utils/main/apps/docker/daemon.sh | bash -s expose-http
       - run: curl http://localhost:2375/_ping
+  runner-windows:
+    runs-on: windows-latest
+    steps:
+      - run: docker context inspect default
