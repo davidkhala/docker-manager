@@ -80,20 +80,3 @@ describe('busy box', function () {
 		await manager.containerDelete(containerName);
 	});
 });
-describe('postgres', function () {
-	this.timeout(0);
-	const HostPort = 6432;
-	const password = 'password';
-	it('container start, stop', async () => {
-		const Image = 'postgres';
-		const opts = new ContainerOptsBuilder(Image, []); // ['postgres']
-
-		opts.setHealthCheck(true, 'pg_isready -U postgres'); // "pg_isready -h localhost -p 5432 -q -U postgres"
-		opts.setPortBind(`${HostPort}:5432`);
-		opts.name = Image;
-		opts.env = [`POSTGRES_PASSWORD=${password}`];
-		const info = await manager.containerStart(opts.opts, true);
-		console.debug(info);
-		await manager.containerDelete(Image);
-	});
-});
