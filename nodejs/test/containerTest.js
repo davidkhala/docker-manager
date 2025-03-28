@@ -30,32 +30,33 @@ describe('hello-world', function () {
 	});
 
 });
-if (!(process.env.CI && os.platform() === 'win32')) {
 
-	describe('fabric-tools', function () {
-		this.timeout(0);
+describe('run command', function () {
+	this.timeout(0);
+	if (os.platform() === 'win32') {
+		return;
+	}
+	it('fabric-tools: command in lasting container', async () => {
 		const imageName = 'hyperledger/fabric-tools';
 		const containerName = 'cli';
-		before(async () => {
-			await manager.imagePull(imageName);
-			const containerOptsBuilder = new ContainerOptsBuilder(imageName, ['cat']);
-			containerOptsBuilder.name = containerName;
-			containerOptsBuilder.tty = true;
-			const {opts} = containerOptsBuilder;
-			opts.AttachStdin = true;
-			opts.AttachStdout = true;
+		await manager.imagePull(imageName);
+		const containerOptsBuilder = new ContainerOptsBuilder(imageName, ['cat']);
+		containerOptsBuilder.name = containerName;
+		containerOptsBuilder.tty = true;
+		const {opts} = containerOptsBuilder;
+		opts.AttachStdin = true;
+		opts.AttachStdout = true;
+		await manager.containerStart(opts);
+		// run
 
-			await manager.containerStart(opts);
-		});
-		it('container exec', async () => {
-			const result = await manager.containerExec(containerName, {Cmd: ['echo', 'x']});
-			assert.equal(result, 'x\n');
-		});
-		after(async () => {
-			await manager.containerDelete(containerName);
-		});
+		const result = await manager.containerExec(containerName, {Cmd: ['echo', 'x']});
+		assert.equal(result, 'x\n');
+		// cleanup
+		await manager.containerDelete(containerName);
 	});
-}
+
+});
+
 
 describe('busy box', function () {
 	this.timeout(0);
