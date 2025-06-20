@@ -12,13 +12,12 @@
     "test": "mocha test"
   },
   "dependencies": {
-    "@davidkhala/container": "^0.3.0",
+    "@davidkhala/container": "^0.3.1",
     "@davidkhala/light": "latest"
   },
   "devDependencies": {
     "mocha": "latest",
-    "@davidkhala/logger": "latest",
-    "eslint": "latest"
+    "@davidkhala/logger": "latest"
   },
   "publishConfig": {
     "access": "public"

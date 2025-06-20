@@ -135,13 +135,6 @@ export class Container extends OCIContainer {
 		return [created];
 	}
 
-	_afterStart() {
-		return [running, exited];
-	}
-
-	_beforeKill() {
-		return [running];
-	}
 }
 
 export class ContainerOptsBuilder extends OCIContainerOptsBuilder {
