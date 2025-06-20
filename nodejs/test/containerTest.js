@@ -46,7 +46,8 @@ describe('run command', function () {
 		const {opts} = containerOptsBuilder;
 		opts.AttachStdin = true;
 		opts.AttachStdout = true;
-		await manager.containerStart(opts);
+		const info = await manager.containerStart(opts);
+		console.debug({info});
 		// run
 
 		const result = await manager.containerExec(containerName, {Cmd: ['echo', 'x']});
@@ -60,16 +61,25 @@ describe('run command', function () {
 
 describe('busy box', function () {
 	this.timeout(0);
-	const imageName = 'busybox';
+	const Image = 'busybox';
 	const containerName = 'tool';
 	before(async () => {
-		await manager.imagePull(imageName);
-		const containerOptsBuilder = new ContainerOptsBuilder(imageName, hang);
+		await manager.imagePull(Image);
+		const containerOptsBuilder = new ContainerOptsBuilder(Image, hang);
 		containerOptsBuilder.name = containerName;
 		const {opts} = containerOptsBuilder;
 
 		await manager.containerStart(opts);
 
+	});
+	it('run', async () => {
+		let [out, err] = await manager.run(Image, ['sh', '-c', 'echo message']);
+		assert.equal(err, '');
+		assert.equal(out, 'message');
+
+		([out, err] = await manager.run(Image, ['sh', '-c', 'echo message >&2']));
+		assert.equal(err, 'message');
+		assert.equal(out, '');
 	});
 	if (!process.env.GITHUB_ACTIONS) {
 		// GitHub runner in Azure doesn't allow ping

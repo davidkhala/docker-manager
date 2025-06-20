@@ -1,6 +1,7 @@
 import {socketPath} from './constants.js';
-import {OCI} from '@davidkhala/container/oci.js';
-import {OCIContainerOptsBuilder} from '@davidkhala/container/options.js';
+import OCI from '@davidkhala/container/oci.js';
+import OCIContainer from '@davidkhala/container/container.js';
+import OCIContainerOptsBuilder from '@davidkhala/container/options.js';
 import {Reason, ContainerStatus} from '@davidkhala/container/constants.js';
 import stream from 'stream';
 import streamPromises from 'stream/promises';
@@ -110,7 +111,6 @@ export class ContainerManager extends OCI {
 	/**
 	 * TODO how is options
 	 * @param container_name
-	 * @return {Promise<void>}
 	 */
 	async containerSolidify({container_name}) {
 		const container = this.client.getContainer(container_name);
@@ -118,19 +118,19 @@ export class ContainerManager extends OCI {
 	}
 
 
-	async imagePull(imageName) {
+	async imagePull(name) {
 
 		const onProgress = (event) => {
-			const {status, progress} = event;
-			// docker event
-			this.logger.debug(status, imageName, progress || '');
+			const {status, progress} = event; // docker event
+			this.logger.debug(status, name, progress || '');
 		};
 
-		return super.imagePull(imageName, onProgress);
+		return this.image.pullIfNotExist(name, onProgress);
 
 	}
 
-
+}
+export class Container extends OCIContainer {
 	_afterCreate() {
 		return [created];
 	}
