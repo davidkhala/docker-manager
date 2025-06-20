@@ -4,7 +4,6 @@ export const socketPath = (rootless) => {
 	switch (os.platform) {
 		case 'win32':
 			return '\\\\.\\pipe\\docker_engine'; // provided by Docker Desktop
-			// TODO how about npipe:////./pipe/docker_engine
 		case 'linux':
 			return rootless ? `/run/user/${uid}/docker.sock` : '/var/run/docker.sock';
 		case 'darwin':
