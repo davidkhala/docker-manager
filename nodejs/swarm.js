@@ -1,10 +1,6 @@
-import ContainerManager from './docker.js';
+import {ContainerManager} from './docker.js';
 import {execSync} from '@davidkhala/light/devOps.js'
-import {systemInfo} from './dockerCmd.js'
-export const swarmWorkerInfo = () => {
-	const {Swarm} = JSON.parse(systemInfo());
-	return Swarm;
-};
+
 export const nodeInspect = (id) => {
 	const stdout = execSync(`docker node inspect ${id}`);
 
@@ -300,6 +296,14 @@ export class DockerSwarmManager extends ContainerManager {
 	}
 
 	/**
+	 * formerly known as swarmWorkerInfo
+	 */
+	async info(){
+		const {Swarm} = super.info();
+		return Swarm;
+	}
+
+	/**
 	 *
 	 * @param {string} AdvertiseAddr must be in form of <ip>:2377
 	 * @param {string} JoinToken token only
@@ -324,8 +328,8 @@ export class DockerSwarmManager extends ContainerManager {
 						if (swarm) {
 							throw Error(`belongs to another swarm ${swarm.ID}`);
 						} else {
-							logger.info('swarm joined already', 'as worker');
-							return swarmWorkerInfo();
+							this.logger.info('swarm joined already', 'as worker');
+							return this.info();
 						}
 					}
 					this.logger.info('swarm joined already', swarm.ID);

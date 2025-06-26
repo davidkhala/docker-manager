@@ -1,13 +1,16 @@
 import assert from 'assert';
 import {ContainerManager} from '../docker.js';
 import os from "os";
+import fs from "fs";
 
 describe('docker', () => {
 
     it('ping', async () => {
         const docker = new ContainerManager();
-        const info = await docker.ping();
-        assert.strictEqual(info, 'OK');
+        assert.strictEqual(await docker.ping(), 'OK');
+        const info = await docker.info()
+        fs.writeFileSync(`test/artifacts/info-${os.platform()}.json`, JSON.stringify(info, null, 2));
+
     });
     it('test windows socket path', async () => {
         if (os.platform() !== 'win32') {

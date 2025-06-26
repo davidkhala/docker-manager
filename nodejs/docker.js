@@ -7,7 +7,7 @@ import stream from 'stream';
 import streamPromises from 'stream/promises';
 
 const {NetworkNotFound} = Reason;
-const {created, running, exited} = ContainerStatus;
+const {created} = ContainerStatus;
 
 
 /**
