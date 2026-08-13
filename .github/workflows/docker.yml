@@ -2,18 +2,17 @@ name: docker test
 
 on:
   push:
-
+  workflow_dispatch:
 jobs:
 
-  nodejs-rootless:
+  nodejs:
     defaults:
       run:
         working-directory: nodejs
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@main
-    - name: Use Docker in rootless mode.
-      uses: ScribeMD/rootless-docker@main
+    - uses: davidkhala/setup-dockerode@main
     - run: npm i
     - run: npm test
   runner-ubuntu:

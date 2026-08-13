@@ -12,7 +12,7 @@
     "test": "mocha test"
   },
   "dependencies": {
-    "@davidkhala/container": "^0.3.1",
+    "@davidkhala/container": "latest",
     "@davidkhala/light": "latest"
   },
   "devDependencies": {

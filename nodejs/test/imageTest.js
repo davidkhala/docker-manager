@@ -10,17 +10,17 @@ describe('docker image', function () {
 
 		const imageName = 'hello-world';
 		await dockerManager.imagePull(imageName);
-		await dockerManager.imageDelete(imageName);
+		await dockerManager.image.delete(imageName);
 	});
 	it('pull if not exist', async () => {
 		const imageName = 'hello-world';
-		await dockerManager.imagePullIfNotExist(imageName);
-		await dockerManager.imagePullIfNotExist(imageName);
-		let imageList = await dockerManager.imageList();
+		await dockerManager.image.pullIfNotExist(imageName);
+		await dockerManager.image.pullIfNotExist(imageName);
+		let imageList = await dockerManager.image.list();
 		logger.debug('imageList', imageList);
-		imageList = await dockerManager.imageList({all: true});
+		imageList = await dockerManager.image.list({all: true});
 		logger.debug('imageList: including intermediate images', imageList);
-		await dockerManager.imageDelete(imageName);
+		await dockerManager.image.delete(imageName);
 	});
 
 });

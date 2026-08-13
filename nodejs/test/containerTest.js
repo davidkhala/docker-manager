@@ -25,8 +25,8 @@ describe('hello-world', function () {
 		await manager.containerRestart(containerName);
 	});
 	after(async () => {
-		await manager.containerDelete(containerName);
-		await manager.imageDelete(imageName);
+		await manager.container.delete(containerName);
+		await manager.image.delete(imageName);
 	});
 
 });
@@ -53,7 +53,7 @@ describe('run command', function () {
 		const result = await manager.containerExec(containerName, {Cmd: ['echo', 'x']});
 		assert.equal(result, 'x\n');
 		// cleanup
-		await manager.containerDelete(containerName);
+		await manager.container.delete(containerName);
 	});
 
 });
@@ -73,11 +73,11 @@ describe('busy box', function () {
 
 	});
 	it('run', async () => {
-		let [out, err] = await manager.run(Image, ['sh', '-c', 'echo message']);
+		let [out, err] = await manager.run(Image, ['sh', '-c', 'echo message'], true);
 		assert.equal(err, '');
 		assert.equal(out, 'message');
 
-		([out, err] = await manager.run(Image, ['sh', '-c', 'echo message >&2']));
+		[out, err] = await manager.run(Image, ['sh', '-c', 'echo message >&2'], true);
 		assert.equal(err, 'message');
 		assert.equal(out, '');
 	});
@@ -93,6 +93,6 @@ describe('busy box', function () {
 
 
 	after(async () => {
-		await manager.containerDelete(containerName);
+		await manager.container.delete(containerName);
 	});
 });
