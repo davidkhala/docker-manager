@@ -8,33 +8,10 @@ import os from 'os';
 const logger = consoleLogger('test:docker');
 const manager = new ContainerManager(undefined, logger);
 
-describe('hello-world', function () {
-    this.timeout(0);
-
-    const imageName = 'hello-world';
-    const containerName = imageName;
-    before(async () => {
-        await manager.imagePull(imageName);
-    });
-    it('container start,restart,exec', async () => {
-
-        const containerOptsBuilder = new ContainerOptsBuilder(imageName, []);
-        containerOptsBuilder.name = containerName;
-        const {opts} = containerOptsBuilder;
-        await manager.containerStart(opts);
-        await manager.containerRestart(containerName);
-    });
-    after(async () => {
-        await manager.container.delete(containerName);
-        await manager.image.delete(imageName);
-    });
-
-});
-
 if (os.platform() === 'win32') {
     describe('nanoserver', function () {
         this.timeout(0);
-        const Image = 'mcr.microsoft.com/windows/nanoserver:ltsc2025';
+        const Image = 'mcr.microsoft.com/windows/nanoserver:ltsc2022'; // align to windows-latest runner (Aug 2026)
         const containerName = 'tool';
         before(async () => {
             await manager.imagePull(Image);
@@ -71,6 +48,28 @@ if (os.platform() === 'win32') {
         });
     })
 } else {
+    describe('hello-world', function () {
+        this.timeout(0);
+
+        const imageName = 'hello-world';
+        const containerName = imageName;
+        before(async () => {
+            await manager.imagePull(imageName);
+        });
+        it('container start,restart,exec', async () => {
+
+            const containerOptsBuilder = new ContainerOptsBuilder(imageName, []);
+            containerOptsBuilder.name = containerName;
+            const {opts} = containerOptsBuilder;
+            await manager.containerStart(opts);
+            await manager.containerRestart(containerName);
+        });
+        after(async () => {
+            await manager.container.delete(containerName);
+            await manager.image.delete(imageName);
+        });
+
+    });
     describe('run command', function () {
         this.timeout(0);
 
