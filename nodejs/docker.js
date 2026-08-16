@@ -1,10 +1,13 @@
-import {socketPath} from './constants.js';
+import {socketPath, dockerHost} from './constants.js';
 import OCI from '@davidkhala/container/oci.js';
 import OCIContainer from '@davidkhala/container/container.js';
+import OCIImage from '@davidkhala/container/image.js'
 import OCIContainerOptsBuilder from '@davidkhala/container/options.js';
 import {Reason, ContainerStatus} from '@davidkhala/container/constants.js';
 import stream from 'stream';
 import streamPromises from 'stream/promises';
+import {execFileSync} from 'child_process';
+
 
 const {NetworkNotFound} = Reason;
 const {created} = ContainerStatus;
@@ -18,178 +21,196 @@ const {created} = ContainerStatus;
  * @property {number} [port]
  */
 
+
+export class Image extends OCIImage {
+    /**
+     * Pull an image by name using the Docker CLI.
+     * Overrides the dockerode API stream approach, which hangs forever on Windows:
+     * the named-pipe HTTP response (IncomingMessage) never emits 'end'/'close',
+     * so modem.followProgress() never calls onFinished.
+     * See known issue apocas/docker-modem#83
+     * @param {string} name
+     */
+    pull(name) {
+        const {socketPath} = this.client.modem;
+        const env = socketPath
+            ? {...process.env, DOCKER_HOST: dockerHost(socketPath)}
+            : process.env;
+        execFileSync('docker', ['pull', name], {stdio: 'inherit', env});
+    }
+}
+
+export class Container extends OCIContainer {
+    _afterCreate() {
+        return [created];
+    }
+}
+
 export class ContainerManager extends OCI {
 
-	/**
-	 *
-	 * @param {DockerodeOpts} [opts]
-	 * @param [logger]
-	 */
-	constructor(opts = {socketPath: socketPath()}, logger) {
-		super(opts, logger);
-	}
+    /**
+     *
+     * @param {DockerodeOpts} [opts]
+     * @param [logger]
+     */
+    constructor(opts = {socketPath: socketPath()}, logger) {
+        super(opts, logger);
+    }
 
-	async networkCreate(Name, swarm) {
-		const network = await this.client.createNetwork({
-			Name, CheckDuplicate: true, Driver: swarm ? 'overlay' : 'bridge', Internal: false, Attachable: true
-		});
-		return await network.inspect();
-	}
+    async networkCreate(Name, swarm) {
+        const network = await this.client.createNetwork({
+            Name, CheckDuplicate: true, Driver: swarm ? 'overlay' : 'bridge', Internal: false, Attachable: true
+        });
+        return await network.inspect();
+    }
 
-	async networkCreateIfNotExist(name, swarm) {
-		try {
-			const network = this.client.getNetwork(name);
-			const status = await network.inspect();
-			const {Scope, Driver, Containers} = status;
-			this.logger.debug(`network[${name}] exist`, {
-				Scope, Driver, Containers: Containers ? Object.values(Containers).map(({Name}) => Name) : undefined
-			});
-			if ((Scope === 'local' && swarm) || (Scope === 'swarm' && !swarm)) {
-				this.logger.info(`network exist with unwanted ${Scope} ${swarm}`, 're-creating');
-				await network.remove();
-				return await this.networkCreate(name, swarm);
-			}
-			return status;
-		} catch (err) {
-			if (err.statusCode === 404 && err.reason === NetworkNotFound) {
-				this.logger.info(err.json.message, 'creating');
-				return await this.networkCreate(name, swarm);
-			} else {
-				throw err;
-			}
-		}
-	}
+    async networkCreateIfNotExist(name, swarm) {
+        try {
+            const network = this.client.getNetwork(name);
+            const status = await network.inspect();
+            const {Scope, Driver, Containers} = status;
+            this.logger.debug(`network[${name}] exist`, {
+                Scope, Driver, Containers: Containers ? Object.values(Containers).map(({Name}) => Name) : undefined
+            });
+            if ((Scope === 'local' && swarm) || (Scope === 'swarm' && !swarm)) {
+                this.logger.info(`network exist with unwanted ${Scope} ${swarm}`, 're-creating');
+                await network.remove();
+                return await this.networkCreate(name, swarm);
+            }
+            return status;
+        } catch (err) {
+            if (err.statusCode === 404 && err.reason === NetworkNotFound) {
+                this.logger.info(err.json.message, 'creating');
+                return await this.networkCreate(name, swarm);
+            } else {
+                throw err;
+            }
+        }
+    }
 
-	/**
-	 * @param {string} containerName
-	 */
-	async containerRestart(containerName) {
-		const container = this.client.getContainer(containerName);
-		const containInfo = await container.inspect();
-		this.logger.debug('restart container', containerName, containInfo.State.Status);
-		await container.restart();
-	}
+    /**
+     * @param {string} containerName
+     */
+    async containerRestart(containerName) {
+        const container = this.client.getContainer(containerName);
+        const containInfo = await container.inspect();
+        this.logger.debug('restart container', containerName, containInfo.State.Status);
+        await container.restart();
+    }
 
-	async containerExec(container_name, opts) {
-		const {Cmd} = opts;
-		const container = this.client.getContainer(container_name);
-		const exec = await container.exec(Object.assign({
-			AttachStderr: true,
-			AttachStdout: true,
-			Cmd,
-		}, opts));
+    async containerExec(container_name, opts) {
+        const {Cmd} = opts;
+        const container = this.client.getContainer(container_name);
+        const exec = await container.exec(Object.assign({
+            AttachStderr: true, AttachStdout: true, Cmd,
+        }, opts));
 
-		const dockerExecStream = await exec.start({});
+        const dockerExecStream = await exec.start({});
 
-		const stdoutStream = new stream.PassThrough();
-		const stderrStream = new stream.PassThrough();
+        const stdoutStream = new stream.PassThrough();
+        const stderrStream = new stream.PassThrough();
 
-		this.client.modem.demuxStream(dockerExecStream, stdoutStream, stderrStream);
+        this.client.modem.demuxStream(dockerExecStream, stdoutStream, stderrStream);
 
-		dockerExecStream.resume();
+        dockerExecStream.resume();
 
-		await streamPromises.finished(dockerExecStream);
+        await streamPromises.finished(dockerExecStream);
 
-		const stderr = stderrStream.read() || '';// read might return null
-		const stdout = stdoutStream.read() || '';// read might return null
-		const errStr = stderr.toString();
-		const outStr = stdout.toString();
+        const stderr = stderrStream.read() || '';// read might return null
+        const stdout = stdoutStream.read() || '';// read might return null
+        const errStr = stderr.toString();
+        const outStr = stdout.toString();
 
-		const {ExitCode} = await exec.inspect();
+        const {ExitCode} = await exec.inspect();
 
-		if (stderr || ExitCode !== 0) {
-			const err = Error(errStr);
-			err.code = ExitCode;
-			err.stderr = errStr;
-			err.stdout = outStr;
-			throw err;
-		}
-		return outStr;
+        if (stderr || ExitCode !== 0) {
+            const err = Error(errStr);
+            err.code = ExitCode;
+            err.stderr = errStr;
+            err.stdout = outStr;
+            throw err;
+        }
+        return outStr;
 
-	}
+    }
 
-	/**
-	 * TODO how is options
-	 * @param container_name
-	 */
-	async containerSolidify({container_name}) {
-		const container = this.client.getContainer(container_name);
-		await container.commit();
-	}
+    /**
+     * TODO how is options
+     * @param container_name
+     */
+    async containerSolidify({container_name}) {
+        const container = this.client.getContainer(container_name);
+        await container.commit();
+    }
 
+    get container() {
+        return new Container(this.client, this.logger);
+    }
 
-	async imagePull(name) {
+    get image() {
+        return new Image(this.client, this.logger);
+    }
 
-		const onProgress = (event) => {
-			const {status, progress} = event; // docker event
-			this.logger.debug(status, name, progress || '');
-		};
-
-		return this.image.pullIfNotExist(name, onProgress);
-
-	}
+    imagePull(name) {
+        return this.image.pullIfNotExist(name);
+    }
 
 }
-export class Container extends OCIContainer {
-	_afterCreate() {
-		return [created];
-	}
 
-}
 
 export class ContainerOptsBuilder extends OCIContainerOptsBuilder {
-	constructor(Image, Cmd, logger) {
-		super(Image, Cmd, logger);
-		this.opts.ExposedPorts = {};
-		this.opts.Volumes = {};
-	}
+    constructor(Image, Cmd, logger) {
+        super(Image, Cmd, logger);
+        this.opts.ExposedPorts = {};
+        this.opts.Volumes = {};
+    }
 
-	setHostGateway() {
-		if (!this.opts.HostConfig.ExtraHosts) {
-			this.opts.HostConfig.ExtraHosts = [];
-		}
+    setHostGateway() {
+        if (!this.opts.HostConfig.ExtraHosts) {
+            this.opts.HostConfig.ExtraHosts = [];
+        }
 
-		this.opts.HostConfig.ExtraHosts.push('host.docker.internal:host-gateway', // docker host auto-binding
-		);
-	}
+        this.opts.HostConfig.ExtraHosts.push('host.docker.internal:host-gateway', // docker host auto-binding
+        );
+    }
 
-	/**
-	 * Expose a port used within docker network only
-	 * @param {string} containerPort
-	 * @return {ContainerOptsBuilder}
-	 */
-	setExposedPort(containerPort) {
-		this.opts.ExposedPorts[containerPort] = {};
-		return this;
-	}
+    /**
+     * Expose a port used within docker network only
+     * @param {string} containerPort
+     * @return {ContainerOptsBuilder}
+     */
+    setExposedPort(containerPort) {
+        this.opts.ExposedPorts[containerPort] = {};
+        return this;
+    }
 
-	/**
-	 * @param {string} network
-	 * @param {string[]} Aliases
-	 * @returns {ContainerOptsBuilder}
-	 */
-	setNetwork(network, Aliases) {
-		if (!this.opts.NetworkingConfig) {
-			this.opts.NetworkingConfig = {};
-		}
-		if (!this.opts.NetworkingConfig.EndpointsConfig) {
-			this.opts.NetworkingConfig.EndpointsConfig = {};
-		}
-		this.opts.NetworkingConfig.EndpointsConfig[network] = {
-			Aliases
-		};
-		return this;
-	}
+    /**
+     * @param {string} network
+     * @param {string[]} Aliases
+     * @returns {ContainerOptsBuilder}
+     */
+    setNetwork(network, Aliases) {
+        if (!this.opts.NetworkingConfig) {
+            this.opts.NetworkingConfig = {};
+        }
+        if (!this.opts.NetworkingConfig.EndpointsConfig) {
+            this.opts.NetworkingConfig.EndpointsConfig = {};
+        }
+        this.opts.NetworkingConfig.EndpointsConfig[network] = {
+            Aliases
+        };
+        return this;
+    }
 
-	/**
-	 *
-	 * @param {string} volumeName or a bind-mount absolute path
-	 * @param {string} containerPath
-	 * @returns {ContainerOptsBuilder}
-	 */
-	setVolume(volumeName, containerPath) {
-		super.setVolume(volumeName, containerPath);
-		this.opts.Volumes[containerPath] = {};// docker only
-		return this;
-	}
+    /**
+     *
+     * @param {string} volumeName or a bind-mount absolute path
+     * @param {string} containerPath
+     * @returns {ContainerOptsBuilder}
+     */
+    setVolume(volumeName, containerPath) {
+        super.setVolume(volumeName, containerPath);
+        this.opts.Volumes[containerPath] = {};// docker only
+        return this;
+    }
 }

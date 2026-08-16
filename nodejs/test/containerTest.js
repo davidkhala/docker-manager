@@ -23,8 +23,6 @@ if (os.platform() === 'win32') {
         });
         it('run', async () => {
             // Use containerExec instead of manager.run() — on Windows named pipe,
-            // dockerode 的 modem 对 named pipe 的 stream 结束检测存在已知问题apocas/docker-modem#83:
-            // dockerode's run() stream never emits 'end', causing the Promise to hang forever.
             const out = await manager.containerExec(containerName, {Cmd: ['cmd', '/S', '/C', 'echo message']});
             assert.equal(out.trim(), 'message');
         });

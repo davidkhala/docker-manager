@@ -16,8 +16,8 @@
     "@davidkhala/light": "latest"
   },
   "devDependencies": {
-    "mocha": "latest",
-    "@davidkhala/logger": "latest"
+    "@davidkhala/logger": "latest",
+    "mocha": "latest"
   },
   "publishConfig": {
     "access": "public"

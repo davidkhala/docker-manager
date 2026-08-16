@@ -11,6 +11,18 @@ export const socketPath = (rootless) => {
 	}
 };
 
+/**
+ * Convert a socket path to a DOCKER_HOST value for the Docker CLI.
+ * @param {string} socket
+ * @returns {string}
+ */
+export const dockerHost = (socket) => {
+	if (os.platform === 'win32') {
+		return `npipe://${socket.replace(/\\/g, '/')}`;
+	}
+	return `unix://${socket}`;
+};
+
 export const DockerodeOption = (host = '127.0.0.1', tls) => {
 
 	return {
