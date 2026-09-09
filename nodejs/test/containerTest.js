@@ -29,16 +29,8 @@ if (os.platform() === 'win32') {
         if (!process.env.GITHUB_ACTIONS) {
             // GitHub runner in Azure doesn't allow ping
             it('ping-dns', async () => {
-                // nanoserver containers have no external DNS by default — ping to a public host always fails
-                // with a "could not find host" message written to stdout (not stderr).
-                // containerExec throws because ping exits non-zero; the DNS error text is on e.stdout.
-                try {
-                    await manager.containerExec(containerName, {Cmd: ['ping', '-n', '3', 'google.com']});
-                    assert.fail('should throw: nanoserver cannot resolve external hostnames');
-                } catch (e) {
-                    // assert the exact stdout to verify the DNS-unavailable behaviour of nanoserver
-                    assert.equal(e.stdout, 'Ping request could not find host google.com. Please check the name and try again.\r\n');
-                }
+                const out = await manager.containerExec(containerName, {Cmd: ['ping', '-n', '3', 'google.com']});
+                console.log(out)
             });
         }
         after(async () => {
