@@ -13,16 +13,12 @@ jobs:
       matrix: 
         os: [ubuntu-latest, windows-latest]
     runs-on: ${{matrix.os}}
+    timeout-minutes: 15
     steps:
     - uses: davidkhala/setup-dockerode@main
-    - name: ensure Docker engine is running (Windows)
-      if: runner.os == 'Windows'
-      run: |
-        Get-Service docker | Format-List Name, Status, StartType
-        if ((Get-Service docker).Status -ne 'Running') { Start-Service docker }
-        docker version
     - run: npm i
     - run: npm test
+      timeout-minutes: 4
   
 
   

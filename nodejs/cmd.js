@@ -1,4 +1,4 @@
-import {execSync} from "@davidkhala/light/devOps.js";
+import {execFileSync} from "@davidkhala/light/devOps.js";
 
 export function ping(domain, count = 3) {
 	return ['ping', `${domain}`, '-c', `${count}`];
@@ -6,4 +6,4 @@ export function ping(domain, count = 3) {
 
 export const hang = ['sleep', 'infinity'];
 
-export const info = () => execSync('docker info --format \'{{json .}}\'');
+export const info = () => execFileSync('docker', ['info', '--format', '{{json .}}']);

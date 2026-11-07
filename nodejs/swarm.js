@@ -1,8 +1,8 @@
 import {ContainerManager} from './docker.js';
-import {execSync} from '@davidkhala/light/devOps.js'
+import {execFileSync} from '@davidkhala/light/devOps.js'
 
 export const nodeInspect = (id) => {
-	const stdout = execSync(`docker node inspect ${id}`);
+	const stdout = execFileSync('docker', ['node', 'inspect', id]);
 
 	return JSON.parse(stdout)[0];
 };
@@ -18,10 +18,10 @@ export const nodeSelf = (pretty) => {
 	return info;
 };
 export const joinToken =(role = 'manager') => {
-	const cmd = `docker swarm join-token ${role} | grep docker`;
-	const stdout = execSync(cmd);
+	const stdout = execFileSync('docker', ['swarm', 'join-token', role]);
 
-	return stdout.trim();
+	// equivalent to `| grep docker`, without relying on a shell pipe
+	return stdout.split('\n').filter(line => line.includes('docker')).join('\n').trim();
 };
 
 export const advertiseAddr = (fullToken) => {
@@ -479,7 +479,7 @@ export class DockerSwarmManager extends ContainerManager {
 		return constraints;
 	}
 
-	async static constraintSelf() {
+	static async constraintSelf() {
 		const {ID} = await nodeSelf(true);
 		return DockerSwarmManager.constraintsBuilder({ID});
 	}

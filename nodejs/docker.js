@@ -1,4 +1,5 @@
-import {socketPath, dockerHost} from './constants.js';
+import {socketPath} from './constants.js';
+import * as cmd from './dockerCmd.js';
 import OCI from '@davidkhala/container/oci.js';
 import OCIContainer from '@davidkhala/container/container.js';
 import OCIImage from '@davidkhala/container/image.js'
@@ -6,7 +7,7 @@ import OCIContainerOptsBuilder from '@davidkhala/container/options.js';
 import {Reason, ContainerStatus} from '@davidkhala/container/constants.js';
 import stream from 'stream';
 import streamPromises from 'stream/promises';
-import {execFileSync} from 'child_process';
+import {os} from '@davidkhala/light/devOps.js';
 
 
 const {NetworkNotFound, ContainerNotFound} = Reason;
@@ -24,19 +25,11 @@ const {created} = ContainerStatus;
 
 export class Image extends OCIImage {
     /**
-     * Pull an image by name using the Docker CLI.
-     * Overrides the dockerode API stream approach, which hangs forever on Windows:
-     * the named-pipe HTTP response (IncomingMessage) never emits 'end'/'close',
-     * so modem.followProgress() never calls onFinished.
-     * See known issue apocas/docker-modem#83
+     * Overrides the dockerode API stream approach, which hangs forever on Windows. See {@link cmd.pull}
      * @param {string} name
      */
     pull(name) {
-        const {socketPath} = this.client.modem;
-        const env = socketPath
-            ? {...process.env, DOCKER_HOST: dockerHost(socketPath)}
-            : process.env;
-        execFileSync('docker', ['pull', name], {stdio: 'inherit', env});
+        cmd.pull(name, this.client.modem.socketPath);
     }
 }
 
@@ -45,41 +38,6 @@ export class Container extends OCIContainer {
         return [created];
     }
 
-    static async kill(container) {
-        try {
-            await container.kill();
-        } catch (err) {
-            console.error('kill container failed', err.statusCode, err.reason, err.message, JSON.stringify(err.json));
-            // if (err.statusCode === 409 &&
-            //     err.json?.message?.includes('is not running')
-            // ) {
-            //     return
-            // }
-            throw err;
-        }
-    }
-
-
-    async delete(containerName) {
-        // TODO propagate to podman
-        const container = this.client.getContainer(containerName);
-        try {
-            const containInfo = await container.inspect();
-            const currentStatus = containInfo.State.Status;
-            this.logger.debug('delete container', containerName, currentStatus);
-            if (this._beforeKill().includes(currentStatus)) {
-                await Container.kill(container);
-            }
-            await container.remove();
-
-        } catch (err) {
-            if (err.statusCode === 404 && err.reason === ContainerNotFound) {
-                this.logger.info(err.json.message, 'deleting skipped');
-            } else {
-                throw err;
-            }
-        }
-    }
 }
 
 export class ContainerManager extends OCI {
@@ -134,7 +92,14 @@ export class ContainerManager extends OCI {
         await container.restart();
     }
 
+
+    /**
+     * dockerode exec stream hangs forever on Windows. See {@link cmd.exec}
+     */
     async containerExec(container_name, opts) {
+        if (os.platform === 'win32') {
+            return cmd.exec(container_name, opts, this.client.modem.socketPath);
+        }
         const {Cmd} = opts;
         const container = this.client.getContainer(container_name);
         const exec = await container.exec(Object.assign({

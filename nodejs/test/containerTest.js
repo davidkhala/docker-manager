@@ -11,8 +11,8 @@ const manager = new ContainerManager(undefined, logger);
 
 if (os.platform() === 'win32') {
     describe('nanoserver', function () {
-        this.timeout(0);
-        const Image = 'mcr.microsoft.com/windows/nanoserver:ltsc2022'; // align to windows-latest runner (Aug 2026)
+        this.timeout(5 * 60 * 1000); // fail instead of hanging forever
+        const Image = 'mcr.microsoft.com/windows/nanoserver:ltsc2025'; // align to windows-latest runner (Aug 2026)
         const containerName = 'tool';
         before(async () => {
             await manager.imagePull(Image);
