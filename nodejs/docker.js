@@ -9,7 +9,7 @@ import streamPromises from 'stream/promises';
 import {execFileSync} from 'child_process';
 
 
-const {NetworkNotFound} = Reason;
+const {NetworkNotFound, ContainerNotFound} = Reason;
 const {created} = ContainerStatus;
 
 
@@ -43,6 +43,42 @@ export class Image extends OCIImage {
 export class Container extends OCIContainer {
     _afterCreate() {
         return [created];
+    }
+
+    static async kill(container) {
+        try {
+            await container.kill();
+        } catch (err) {
+            console.error('kill container failed', err.statusCode, err.reason, err.message, JSON.stringify(err.json));
+            // if (err.statusCode === 409 &&
+            //     err.json?.message?.includes('is not running')
+            // ) {
+            //     return
+            // }
+            throw err;
+        }
+    }
+
+
+    async delete(containerName) {
+        // TODO propagate to podman
+        const container = this.client.getContainer(containerName);
+        try {
+            const containInfo = await container.inspect();
+            const currentStatus = containInfo.State.Status;
+            this.logger.debug('delete container', containerName, currentStatus);
+            if (this._beforeKill().includes(currentStatus)) {
+                await Container.kill(container);
+            }
+            await container.remove();
+
+        } catch (err) {
+            if (err.statusCode === 404 && err.reason === ContainerNotFound) {
+                this.logger.info(err.json.message, 'deleting skipped');
+            } else {
+                throw err;
+            }
+        }
     }
 }
 

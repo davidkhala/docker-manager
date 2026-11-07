@@ -3,6 +3,7 @@ import {consoleLogger} from '@davidkhala/logger/log4.js';
 import {ContainerManager, ContainerOptsBuilder} from '../docker.js';
 import {hang, ping} from '../cmd.js';
 import os from 'os';
+import {sleep} from "@davidkhala/light";
 
 
 const logger = consoleLogger('test:docker');
@@ -57,6 +58,7 @@ if (os.platform() === 'win32') {
         after(async () => {
             await manager.container.delete(containerName);
             await manager.image.delete(imageName);
+
         });
 
     });
