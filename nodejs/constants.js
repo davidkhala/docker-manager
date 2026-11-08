@@ -23,10 +23,16 @@ export const dockerHost = (socket) => {
 	return `unix://${socket}`;
 };
 
+/**
+ * @param {string} [host]
+ * @param {boolean|{ca: Buffer|string, cert?: Buffer|string, key?: Buffer|string}} [tls] `true` for TLS with default trust store;
+ * an object enables TLS with the given CA, and client cert/key for mutual TLS (daemon with `tlsverify`)
+ */
 export const DockerodeOption = (host = '127.0.0.1', tls) => {
 
 	return {
 		protocol: tls ? 'https' : 'http',
-		host, port: tls ? 2376 : 2375
+		host, port: tls ? 2376 : 2375,
+		...(typeof tls === 'object' ? tls : {})
 	};
 };

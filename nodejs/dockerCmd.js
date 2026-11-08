@@ -17,7 +17,9 @@ export const daemonJsonFile = {
 };
 export const hosts = {
     linux: ['unix:///var/run/docker.sock', 'tcp://127.0.0.1:2375', 'tcp://0.0.0.0:2376'],
-    win32: ['tcp://127.0.0.1:2375', 'tcp://0.0.0.0:2376'] // TODO not tested yet
+    win32: [
+        'tcp://127.0.0.1:2375', // enabled by Docker Desktop
+    ]
 };
 export const configDaemon = (decorator = data => data) => {
     const configFile = daemonJsonFile[os.platform];
