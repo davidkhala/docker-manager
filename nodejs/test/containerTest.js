@@ -9,6 +9,38 @@ import {sleep} from "@davidkhala/light";
 const logger = consoleLogger('test:docker');
 const manager = new ContainerManager(undefined, logger);
 
+/**
+ * Register `containerSolidify` tests against an already running container
+ * @param {string} containerName
+ */
+const solidify = (containerName) => describe('solidify', function () {
+    const repo = 'docker-manager-solidify-test';
+    const imageName = `${repo}:latest`;
+    afterEach(async () => {
+        await manager.image.delete(imageName);
+        await manager.image.delete(`${repo}:v1`);
+    });
+    it('defaults', async () => {
+        const {Id} = await manager.containerSolidify({container_name: containerName, repo});
+        assert.ok(Id.startsWith('sha256:'));
+        const {RepoTags, Author} = await manager.client.getImage(imageName).inspect();
+        assert.deepEqual(RepoTags, [imageName]);
+        assert.equal(Author, 'David Liu <david-khala@hotmail.com>');
+    });
+    it('override author, with comment and changes', async () => {
+        const author = 'Tester <tester@example.com>';
+        const comment = 'solidify test';
+        await manager.containerSolidify({
+            container_name: containerName, repo, tag: 'v1', author, comment, changes: 'ENV SOLIDIFY=1'
+        });
+        const {RepoTags, Author, Comment, Config} = await manager.client.getImage(`${repo}:v1`).inspect();
+        assert.deepEqual(RepoTags, [`${repo}:v1`]);
+        assert.equal(Author, author);
+        assert.equal(Comment, comment);
+        assert.ok(Config.Env.includes('SOLIDIFY=1'));
+    });
+});
+
 if (os.platform() === 'win32') {
     describe('nanoserver', function () {
         this.timeout(5 * 60 * 1000); // fail instead of hanging forever
@@ -34,6 +66,7 @@ if (os.platform() === 'win32') {
                 console.log(out)
             });
         }
+        solidify(containerName);
         after(async () => {
             await manager.container.delete(containerName);
         });
@@ -109,6 +142,7 @@ if (os.platform() === 'win32') {
             assert.equal(err, 'message');
             assert.equal(out, '');
         });
+        solidify(containerName);
         if (!process.env.GITHUB_ACTIONS) {
             // GitHub runner in Azure doesn't allow ping
             it('ping', async () => {

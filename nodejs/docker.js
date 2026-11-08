@@ -136,12 +136,33 @@ export class ContainerManager extends OCI {
     }
 
     /**
-     * TODO how is options
-     * @param container_name
+     * Commit a container into an image (`docker commit`).
+     * @param {string} container_name
+     * @param {string} repo
+     * @param {string} [tag='latest']
+     * @param {string} [author='David Liu <david-khala@hotmail.com>']
+     * @param {boolean} [pause=false] whether to pause the container during commit
+     * @param {Object} [others] other commit options, e.g. `comment`, `changes`
+     * @returns {Promise<{Id: string}>}
+     * @remarks win32 does not support committing a running container: it is stopped before commit, and started again afterwards
      */
-    async containerSolidify({container_name}) {
+    async containerSolidify({container_name, repo, tag = 'latest', author = 'David Liu <david-khala@hotmail.com>', pause = false, ...others}) {
         const container = this.client.getContainer(container_name);
-        await container.commit();
+        const commit = () => container.commit({repo, tag, author, pause, ...others});
+        if (os.platform !== 'win32') {
+            return commit();
+        }
+        const {State: {Running}} = await container.inspect();
+        if (!Running) {
+            return commit();
+        }
+        this.logger.debug('stop running container before commit on win32', container_name);
+        await container.stop();
+        try {
+            return await commit();
+        } finally {
+            await container.start();
+        }
     }
 
     get container() {
