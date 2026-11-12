@@ -1,13 +1,20 @@
 import assert from 'assert';
 import {consoleLogger} from '@davidkhala/logger/log4.js';
 import {ContainerManager, ContainerOptsBuilder} from '../docker.js';
-import {hang, ping} from '../cmd.js';
+
 import os from 'os';
 import {sleep} from "@davidkhala/light";
 
 
 const logger = consoleLogger('test:docker');
 const manager = new ContainerManager(undefined, logger);
+
+function ping(domain, count = 3) {
+	return ['ping', `${domain}`, '-c', `${count}`];
+}
+
+const hang = ['sleep', 'infinity'];
+
 
 /**
  * Register `containerSolidify` tests against an already running container
