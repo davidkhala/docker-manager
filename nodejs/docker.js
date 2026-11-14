@@ -176,6 +176,10 @@ export class ContainerManager extends OCI {
     imagePull(name) {
         return this.image.pullIfNotExist(name);
     }
+    async isRootless(){
+        const info = await this.info()
+        return info.SecurityOptions.includes("name=rootless")
+    }
 
 }
 

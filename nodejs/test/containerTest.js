@@ -3,7 +3,6 @@ import {consoleLogger} from '@davidkhala/logger/log4.js';
 import {ContainerManager, ContainerOptsBuilder} from '../docker.js';
 
 import os from 'os';
-import {sleep} from "@davidkhala/light";
 
 
 const logger = consoleLogger('test:docker');

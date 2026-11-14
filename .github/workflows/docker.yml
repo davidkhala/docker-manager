@@ -12,18 +12,17 @@ jobs:
       matrix:
         os: [ ubuntu-latest, windows-latest ]
     runs-on: ${{matrix.os}}
-    timeout-minutes: 15
     steps:
       - uses: davidkhala/setup-dockerode@main
       - run: npm i
       - run: npm test
-        timeout-minutes: 4
-  nodejs-rootful:
+      - run: npx mocha test-rootless
+        if: runner.os == 'Linux'
+  nodejs-hosts:
     defaults:
       run:
         working-directory: nodejs
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
       - uses: actions/setup-node@main
         with:
@@ -31,5 +30,5 @@ jobs:
           node-version: lts/*
       - uses: actions/checkout@main
       - run: npm i
-      - run: npm test
+      - run: npx mocha test/tls.js
         timeout-minutes: 4

@@ -79,3 +79,6 @@ export const copy = (containerName, from, to, toContainer) => {
     return execFileSync('docker', ['cp', ...args]);
 };
 
+export const isRootless = () => {
+    return execFileSync('docker', ['info', '--format', '{{json .SecurityOptions}}']).toString().includes('"name=rootless"');
+};
